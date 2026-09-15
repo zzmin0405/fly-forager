@@ -339,8 +339,8 @@ export function createWorld(canvas, obstacles) {
       creatures.setStyle(style);
     },
     setExpansion(level = 0) {
-      const scale = 1 + Math.min(3, Math.max(0, level)) * 0.35;
-      expansionScale = scale;
+      // 실제 타일 좌표를 그대로 유지한다. 확장 레벨은 월드 크기와 카메라 거리만 바꾼다.
+      expansionScale = 1;
       world.scale.set(1, 1, 1);
       camera.position.setLength(31 + Math.min(3, level) * 3.5);
       controls.maxDistance = 58 + Math.min(3, level) * 12;
