@@ -104,6 +104,7 @@ function sense() {
 }
 function move(dt) {
   const [fl, fr, dl, dr] = outputs;
+  const beforeX = bot.x, beforeY = bot.y;
   // 초파리처럼 계속 직선으로 달리지 않고, 짧은 배회 구간과 방향 전환을 섞습니다.
   // 감각 입력은 주행 방향을 편향시키고, 무작위성은 완만하게 변해 자연스러운 탐색을 만듭니다.
   wander += (Math.random() - 0.5) * dt * 1.8;
@@ -155,8 +156,12 @@ function move(dt) {
   // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
   energy = Math.max(18, energy - dt * 0.55);
   elapsed += dt;
-  for (let i = foods.length - 1; i >= 0; i--)
-    if (Math.hypot(foods[i].x - bot.x, foods[i].y - bot.y) < 25) {
+  for (let i = foods.length - 1; i >= 0; i--) {
+    const food = foods[i], vx = bot.x - beforeX, vy = bot.y - beforeY;
+    const length2 = vx * vx + vy * vy;
+    const t = length2 ? Math.max(0, Math.min(1, ((food.x - beforeX) * vx + (food.y - beforeY) * vy) / length2)) : 0;
+    const nearX = beforeX + vx * t, nearY = beforeY + vy * t;
+    if (Math.hypot(food.x - nearX, food.y - nearY) < 36) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
   score++;
@@ -168,6 +173,7 @@ function move(dt) {
       energy = Math.min(100, energy + 15);
       addFood();
     }
+  }
   trail.push({ x: bot.x, y: bot.y });
   if (trail.length > 600) trail.shift();
   $("score").innerHTML =
