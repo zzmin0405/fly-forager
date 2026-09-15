@@ -124,7 +124,7 @@ function move(dt) {
     else turn += Math.max(-1.2, Math.min(1.2, delta)) * Math.exp(-nearest.d / 180) * 1.05;
   }
   bot.a += Math.max(-1.25, Math.min(1.25, turn)) * dt;
-  const speed = feedingApproach ? 26 : 34 + Math.min(42, (fl + fr) * 28),
+  const speed = 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
   if (free(nx, ny)) {
@@ -156,7 +156,7 @@ function move(dt) {
   energy = Math.max(18, energy - dt * 0.55);
   elapsed += dt;
   for (let i = foods.length - 1; i >= 0; i--)
-    if (Math.hypot(foods[i].x - bot.x, foods[i].y - bot.y) < 21) {
+    if (Math.hypot(foods[i].x - bot.x, foods[i].y - bot.y) < 25) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
   score++;
