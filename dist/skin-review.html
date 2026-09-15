@@ -1,0 +1,16 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>외형 둘러보기 · FLYCRAFT</title>
+<style>body{margin:0;background:#18282d;color:#eef5e9;font:16px system-ui}header{padding:20px}a{color:#e4c976}h1{font-size:22px;margin:8px 0}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;padding:12px}article{background:#293e45;border:1px solid #52666a;border-radius:12px;overflow:hidden}h2{font-size:18px;margin:14px}canvas{width:100%;height:230px;display:block}p{color:#bdd0d3}</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+<header><a href="./">← 게임으로</a><h1>외형 둘러보기</h1><p>드래그해서 앞·뒤·옆 모습을 확인하세요.</p></header><main></main>
+<script type="module">
+import * as THREE from 'three';import {OrbitControls} from './vendor/OrbitControls.js';import {createCreatures} from './creatures.js?v=3';
+const views=[];
+for(const [id,name] of [['default','초파리'],['bee','꿀벌'],['ladybug','무당벌레'],['firefly','반딧불이'],['parrot','앵무새'],['sparrow','참새'],['jet','전투기']]) {
+const card=document.createElement('article');card.innerHTML=`<h2>${name}</h2><canvas aria-label="${name} 3D 미리보기"></canvas>`;document.querySelector('main').append(card);
+const canvas=card.querySelector('canvas'),renderer=new THREE.WebGLRenderer({canvas,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setClearColor('#293e45');
+const scene=new THREE.Scene(),model=createCreatures();model.setStyle(id);scene.add(model.root);scene.add(new THREE.HemisphereLight(0xffffff,0x6e8390,2.4));const sun=new THREE.DirectionalLight(0xffefd1,2.5);sun.position.set(3,5,2);scene.add(sun);
+const camera=new THREE.PerspectiveCamera(35,1,.1,30);camera.position.set(2.4,1.9,2.8);const controls=new OrbitControls(camera,canvas);controls.target.set(0,.5,0);controls.enablePan=false;controls.minDistance=1.6;controls.maxDistance=6;controls.update();
+views.push({canvas,renderer,scene,camera,controls});
+}
+function frame(){for(const v of views){const w=v.canvas.clientWidth,h=v.canvas.clientHeight;if(v.canvas.width!==w*devicePixelRatio||v.canvas.height!==h*devicePixelRatio){v.renderer.setSize(w,h,false);v.camera.aspect=w/h;v.camera.updateProjectionMatrix();}v.controls.update();v.renderer.render(v.scene,v.camera);}requestAnimationFrame(frame);}frame();
+</script></html>

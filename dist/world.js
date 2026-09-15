@@ -1,3 +1,4 @@
+import { createCreatures } from "./creatures.js?v=3";
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
 import { animate } from "./vendor/anime.esm.js";
@@ -176,169 +177,9 @@ export function createWorld(canvas, obstacles) {
     scene.add(cloud);
     clouds.push(cloud);
   }
-  // 다리 6개와 날개를 가진 복셀 초파리. 몸의 앞쪽은 게임의 +X 방향이다.
-  const fly = new THREE.Group();
+  const creatures = createCreatures();
+  const fly = creatures.root;
   scene.add(fly);
-  const flyBody = [
-    block(fly, 0, 0.29, 0, 0.45, 0.32, 0.3, "#413a29"),
-    block(fly, -0.2, 0.28, 0, 0.3, 0.26, 0.27, "#a78342"),
-    block(fly, -0.29, 0.28, 0, 0.06, 0.27, 0.28, "#3b3628"),
-    block(fly, 0.24, 0.33, 0, 0.22, 0.27, 0.32, "#595343"),
-  ];
-  const flyEyes = [];
-  for (const z of [-0.17, 0.17])
-    flyEyes.push(block(fly, 0.28, 0.38, z, 0.14, 0.15, 0.1, "#e75a41"));
-  const wings = [], legs = [];
-  for (const side of [-1, 1]) {
-    const pivot = new THREE.Group();
-    pivot.position.set(-0.06, 0.47, side * 0.1);
-    fly.add(pivot);
-    const wing = block(
-      pivot,
-      -0.06,
-      0.02,
-      side * 0.25,
-      0.5,
-      0.025,
-      0.45,
-      "#dcecf0",
-    );
-    wing.material = new THREE.MeshStandardMaterial({
-      color: "#e7f9fa",
-      transparent: true,
-      opacity: 0.78,
-      roughness: 0.3,
-    });
-    wing.castShadow = false;
-    wings.push(pivot);
-    for (let i = 0; i < 3; i++) {
-      const leg = block(
-        fly,
-        -0.17 + i * 0.17,
-        0.14,
-        side * 0.23,
-        0.035,
-        0.22,
-        0.035,
-        "#342e24",
-      );
-      leg.rotation.x = side * 0.5;
-      legs.push(leg);
-    }
-  }
-  const birdParts = new THREE.Group();
-  birdParts.visible = false;
-  fly.add(birdParts);
-  block(birdParts, 0.48, 0.34, 0, 0.22, 0.12, 0.13, "#f1b83b");
-  block(birdParts, -0.5, 0.34, 0, 0.32, 0.11, 0.12, "#4e9b57");
-  for (const side of [-1, 1]) {
-    const wing = block(birdParts, -0.03, 0.38, side * 0.32, 0.48, 0.08, 0.38, "#267f48");
-    wing.rotation.y = side * 0.18;
-    const tail = block(birdParts, -0.52, 0.35, side * 0.12, 0.4, 0.07, 0.12, "#2b65a8");
-    tail.rotation.y = side * 0.22;
-  }
-  const sparrowParts = new THREE.Group();
-  sparrowParts.visible = false;
-  fly.add(sparrowParts);
-  block(sparrowParts, 0.47, 0.34, 0, 0.18, 0.09, 0.1, "#d6a35a");
-  block(sparrowParts, -0.46, 0.36, 0, 0.38, 0.08, 0.12, "#5f4634");
-  for (const side of [-1, 1]) {
-    const wing = block(sparrowParts, -0.05, 0.36, side * 0.3, 0.44, 0.07, 0.34, "#795b43");
-    wing.rotation.y = side * 0.16;
-  }
-  const jetParts = new THREE.Group();
-  jetParts.visible = false;
-  fly.add(jetParts);
-  block(jetParts, 0.5, 0.3, 0, 0.38, 0.1, 0.12, "#c7d1d8");
-  block(jetParts, -0.38, 0.48, 0, 0.18, 0.3, 0.08, "#596975");
-  for (const side of [-1, 1]) {
-    const jetWing = block(jetParts, -0.05, 0.3, side * 0.42, 0.55, 0.07, 0.72, "#7f929e");
-    jetWing.rotation.y = side * 0.3;
-    block(jetParts, -0.55, 0.3, side * 0.16, 0.2, 0.14, 0.14, "#ff754a");
-  }
-  const beeParts = new THREE.Group();
-  beeParts.visible = false;
-  fly.add(beeParts);
-  block(beeParts, -0.28, 0.3, 0, 0.28, 0.3, 0.34, "#f4c430");
-  block(beeParts, -0.08, 0.3, 0, 0.13, 0.32, 0.35, "#24211d");
-  block(beeParts, 0.12, 0.31, 0, 0.24, 0.34, 0.36, "#f4c430");
-  block(beeParts, 0.31, 0.32, 0, 0.13, 0.35, 0.36, "#24211d");
-  block(beeParts, 0.48, 0.34, 0, 0.22, 0.37, 0.38, "#f4c430");
-  block(beeParts, -0.57, 0.3, 0, 0.18, 0.08, 0.08, "#352d22");
-  for (const side of [-1, 1]) {
-    const antenna = block(beeParts, 0.61, 0.52, side * 0.14, 0.25, 0.035, 0.035, "#352d22");
-    antenna.rotation.z = -0.45;
-  }
-  const ladybugParts = new THREE.Group();
-  ladybugParts.visible = false;
-  fly.add(ladybugParts);
-  block(ladybugParts, -0.05, 0.54, -0.18, 0.62, 0.16, 0.34, "#e3342f");
-  block(ladybugParts, -0.05, 0.54, 0.18, 0.62, 0.16, 0.34, "#e3342f");
-  block(ladybugParts, 0.37, 0.45, 0, 0.3, 0.25, 0.45, "#1e2221");
-  for (const x of [-0.3, 0.08]) for (const z of [-0.23, 0.23]) block(ladybugParts, x, 0.72, z, 0.11, 0.05, 0.11, "#151918");
-  const fireflyParts = new THREE.Group();
-  fireflyParts.visible = false;
-  fly.add(fireflyParts);
-  block(fireflyParts, -0.42, 0.31, 0, 0.35, 0.3, 0.34, "#d9ff59");
-  block(fireflyParts, -0.14, 0.31, 0, 0.16, 0.32, 0.35, "#182b24");
-  block(fireflyParts, 0.14, 0.31, 0, 0.18, 0.34, 0.37, "#365c43");
-  const glow = new THREE.PointLight("#b9ff55", 1.8, 3);
-  glow.position.set(-0.48, 0.42, 0); fireflyParts.add(glow);
-  // 복셀 외형과 비교용으로 남긴 곡면 모델. Minecraft 스타일에서는 렌더링하지 않는다.
-  function smooth(parent, geometry, color, position, scale = [1, 1, 1], rotation = [0, 0, 0], options = {}) {
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: options.roughness ?? 0.55, metalness: options.metalness ?? 0, emissive: options.emissive || "#000000", emissiveIntensity: options.emissiveIntensity || 0, transparent: options.opacity < 1, opacity: options.opacity ?? 1 }));
-    mesh.position.set(...position); mesh.scale.set(...scale); mesh.rotation.set(...rotation);
-    mesh.castShadow = true; mesh.visible = false; parent.add(mesh); return mesh;
-  }
-  for (const group of [beeParts, ladybugParts, fireflyParts, birdParts, sparrowParts, jetParts]) group.children.forEach(child => { child.visible = true; });
-  smooth(beeParts, new THREE.CapsuleGeometry(.28,.3,8,20), "#f2bd28", [-.02,.38,0], [1,1,1], [0,0,-Math.PI/2]);
-  smooth(beeParts, new THREE.SphereGeometry(.31,24,16), "#f2bd28", [.37,.42,0]);
-  for(const side of [-1,1]) {
-    smooth(beeParts,new THREE.SphereGeometry(.105,16,12),"#18201d",[.58,.48,side*.2]);
-    smooth(beeParts,new THREE.CylinderGeometry(.014,.014,.22,10),"#2b251d",[.5,.68,side*.14],[1,1,1],[0,0,-.42]);
-    smooth(beeParts,new THREE.SphereGeometry(.032,12,8),"#2b251d",[.59,.78,side*.14]);
-  }
-  for (const x of [-.16,.08]) smooth(beeParts,new THREE.TorusGeometry(.27,.04,10,24),"#2b251d",[x,.38,0],[1,1,.82],[0,Math.PI/2,0]);
-  for (const side of [-1,1]) smooth(beeParts,new THREE.SphereGeometry(.26,20,12),"#dff8ff",[-.12,.62,side*.23],[1.25,.13,.62],[0,0,side*.16],{opacity:.72,roughness:.2});
-  smooth(beeParts,new THREE.ConeGeometry(.055,.2,14),"#2d251e",[-.48,.37,0],[1,1,1],[0,0,Math.PI/2]);
-  for(const x of [-.18,.08]) for(const side of [-1,1]) smooth(beeParts,new THREE.CapsuleGeometry(.018,.09,4,8),"#342b21",[x,.13,side*.17],[1,1,1],[0,0,.12]);
-  smooth(ladybugParts,new THREE.SphereGeometry(.52,28,18),"#df332d",[-.05,.42,0],[1.2,.62,1]);
-  smooth(ladybugParts,new THREE.SphereGeometry(.28,24,16),"#1a1d1d",[.43,.4,0],[1,.8,1]);
-  smooth(ladybugParts,new THREE.BoxGeometry(.7,.035,.025),"#171a19",[-.08,.735,0]);
-  for(const x of [-.27,.04,.25]) for(const side of [-1,1]) smooth(ladybugParts,new THREE.SphereGeometry(.055,14,10),"#101313",[x,.72,side*.3]);
-  smooth(fireflyParts,new THREE.CapsuleGeometry(.21,.58,8,20),"#294633",[.05,.36,0],[1,1,1],[0,0,-Math.PI/2]);
-  smooth(fireflyParts,new THREE.SphereGeometry(.25,24,16),"#15251e",[.45,.39,0]);
-  smooth(fireflyParts,new THREE.SphereGeometry(.25,24,16),"#baff55",[-.47,.37,0],[1.2,.8,.9],[0,0,0],{emissive:"#7dff34",emissiveIntensity:2});
-  for(const side of [-1,1]) smooth(fireflyParts,new THREE.SphereGeometry(.34,20,12),"#c9eee2",[-.05,.57,side*.27],[1.3,.12,.72],[0,0,side*.18],{opacity:.58,roughness:.15});
-  for (const [group, body, wing, beak] of [[birdParts,"#37a35a","#236e43","#f2b53d"],[sparrowParts,"#8b6b4c","#654936","#d8a25b"]]) {
-    smooth(group,new THREE.SphereGeometry(.42,24,16),body,[0,.42,0],[1.25,.78,.82]);
-    smooth(group,new THREE.SphereGeometry(.28,22,14),body,[.42,.55,0]);
-    smooth(group,new THREE.ConeGeometry(.12,.35,18),beak,[.72,.53,0],[1,1,1],[0,0,-Math.PI/2]);
-    smooth(group,new THREE.SphereGeometry(.055,14,10),"#111719",[.61,.64,-.2]);
-    smooth(group,new THREE.SphereGeometry(.055,14,10),"#111719",[.61,.64,.2]);
-    smooth(group,new THREE.SphereGeometry(.3,20,14),"#e8ddbd",[.19,.3,0],[.9,.7,.72]);
-    for(const side of [-1,1]) smooth(group,new THREE.SphereGeometry(.34,20,12),wing,[-.05,.48,side*.3],[1.25,.18,.78],[0,0,side*.18]);
-  }
-  smooth(jetParts,new THREE.CapsuleGeometry(.16,.85,8,24),"#91a4af",[.05,.38,0],[1,1,1],[0,0,-Math.PI/2],{metalness:.7,roughness:.25});
-  smooth(jetParts,new THREE.ConeGeometry(.17,.5,24),"#c8d5db",[.73,.38,0],[1,1,1],[0,0,-Math.PI/2],{metalness:.65,roughness:.2});
-  smooth(jetParts,new THREE.SphereGeometry(.22,20,12),"#65b7d1",[.35,.53,0],[1.25,.45,.72],[0,0,0],{metalness:.35,roughness:.1,opacity:.82});
-  for(const side of [-1,1]) smooth(jetParts,new THREE.SphereGeometry(.38,20,12),"#627985",[-.05,.37,side*.36],[1.35,.12,.9],[0,0,side*.18],{metalness:.6,roughness:.3});
-  // 작은 복셀로 얼굴과 표면 디테일을 만든다.
-  for (const side of [-1, 1]) {
-    block(beeParts, .61, .44, side * .2, .07, .09, .05, "#111817");
-    block(ladybugParts, .52, .51, side * .22, .06, .07, .05, "#f1f5df");
-    block(fireflyParts, .33, .48, side * .2, .055, .07, .045, "#c8f6de");
-    block(birdParts, .4, .58, side * .26, .065, .075, .045, "#17201d");
-    block(sparrowParts, .4, .58, side * .26, .065, .075, .045, "#17201d");
-  }
-  for (const x of [-.28, -.08, .12, .32]) {
-    block(beeParts, x, .6, -.29, .13, .055, .08, x % .4 ? "#2b251d" : "#f4c430");
-    block(beeParts, x, .6, .29, .13, .055, .08, x % .4 ? "#2b251d" : "#f4c430");
-  }
-  block(birdParts, .56, .42, 0, .22, .09, .12, "#f5c345");
-  block(sparrowParts, .54, .42, 0, .18, .075, .1, "#d7a15d");
-  block(jetParts, .18, .55, 0, .28, .09, .18, "#63b4d1");
-  for (const side of [-1, 1]) block(jetParts, -.5, .3, side * .18, .13, .13, .13, "#ff6a42");
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
     markerGeometry,
@@ -449,30 +290,7 @@ export function createWorld(canvas, obstacles) {
   }, { passive: false });
   return {
     customize(style = "default") {
-      const palettes = {
-        default:["#413a29","#a78342","#3b3628","#595343","#e7f9fa"], bee:["#f4c430","#24211d","#f4c430","#24211d","#d9fbff"],
-        ladybug:["#e34234","#202020","#e34234","#202020","#ffe8ef"], firefly:["#263f30","#b7ff63","#eaff8f","#314b38","#c8ffd5"],
-        parrot:["#3da85b","#e84b3c","#287d48","#46b86b","#4b78db"], sparrow:["#8b694d","#c5a982","#6a4c38","#9b795a","#d8c6a7"],
-        jet:["#667986","#b6c3ca","#45545d","#8395a0","#9ec9dc"]
-      };
-      const palette = palettes[style] || palettes.default;
-      fly.scale.setScalar(style === "default" ? 1 : style === "bee" ? .92 : style === "jet" ? 1.18 : 1.06);
-      flyBody.forEach((part,index)=>{part.material=part.material.clone();part.material.color.set(palette[index]);part.material.emissive?.set(style==="firefly"&&index===2?"#78ff45":"#000000");part.material.emissiveIntensity=style==="firefly"&&index===2?1.4:0;});
-      birdParts.visible = style === "parrot";
-      sparrowParts.visible = style === "sparrow";
-      jetParts.visible = style === "jet";
-      beeParts.visible = style === "bee";
-      ladybugParts.visible = style === "ladybug";
-      fireflyParts.visible = style === "firefly";
-      const customBody = ["bee", "ladybug", "firefly"].includes(style);
-      flyBody.forEach(part => { part.visible = !customBody; });
-      flyEyes.forEach(eye => { eye.visible = style === "default"; });
-      const wingColor = palette[4];
-      wings.forEach(pivot => {
-        pivot.visible = !["parrot", "sparrow", "jet", "ladybug"].includes(style);
-        pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); });
-      });
-      legs.forEach(leg => { leg.visible = !["bee", "ladybug", "firefly", "parrot", "sparrow", "jet"].includes(style); });
+      creatures.setStyle(style);
     },
     setExpansion(level = 0) {
       const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
@@ -571,10 +389,7 @@ export function createWorld(canvas, obstacles) {
       );
       fly.rotation.y = -bot.a;
       marker.position.set(fly.position.x, 0.02, fly.position.z);
-      wings.forEach((wing, i) => {
-        wing.rotation.x =
-          (i ? 1 : -1) * (0.15 + (playing ? Math.sin(time * 55) * 0.45 : 0));
-      });
+      creatures.animate(time, playing);
       for (const [food, mesh] of foodMeshes)
         if (!foods.includes(food)) {
           scene.remove(mesh);

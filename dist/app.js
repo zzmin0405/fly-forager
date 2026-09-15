@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=voxel-skins-1";
+import { createWorld } from "./world.js?v=creatures-3";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -32,7 +32,9 @@ let bot = { x: 130, y: 330, a: 0 },
   worldLevel = 0,
   targetStall = 0,
   lastTargetDistance = Infinity,
-  escapeTimer = 0;
+  escapeTimer = 0,
+  saccadeTimer = 0,
+  saccadeTurn = 0;
 let flyStyle = "default";
 let ownedSkins;
 try { ownedSkins = new Set(JSON.parse(localStorage.getItem("flycraft-owned-skins") || '["default"]')); }
@@ -128,9 +130,10 @@ function move(dt) {
   const beforeX = bot.x, beforeY = bot.y;
   // 초파리처럼 계속 직선으로 달리지 않고, 짧은 배회 구간과 방향 전환을 섞습니다.
   // 감각 입력은 주행 방향을 편향시키고, 무작위성은 완만하게 변해 자연스러운 탐색을 만듭니다.
-  wander += (Math.random() - 0.5) * dt * 1.8;
-  wander = Math.max(-0.8, Math.min(0.8, wander));
-  let turn = (fr - fl) * 3.4 + (dl - dr) * 3.8 + wander * 0.45;
+  wander += (Math.random() - 0.5) * dt * 1.25;
+  wander *= Math.exp(-1.1 * dt);
+  wander = Math.max(-0.55, Math.min(0.55, wander));
+  let turn = (fr - fl) * 3.1 + (dl - dr) * 3.6 + wander * 0.3;
   const nearest = foods.reduce((best, f) => {
     const d = Math.hypot(f.x - bot.x, f.y - bot.y);
     return !best || d < best.d ? { f, d } : best;
@@ -142,7 +145,7 @@ function move(dt) {
     let delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
     // 먹이 반경에서는 좌우 센서의 진동보다 목표 방향을 우선해 원을 그리며 도는 현상을 막습니다.
     feedingApproach = nearest.d < 72;
-    if (feedingApproach) turn = delta * 0.82;
+    if (feedingApproach) turn = delta * 1.55;
     else turn += Math.max(-1.2, Math.min(1.2, delta)) * Math.exp(-nearest.d / 180) * 1.05;
     if (nearest.d < lastTargetDistance - 0.35) targetStall = 0;
     else targetStall += dt;
@@ -157,7 +160,18 @@ function move(dt) {
     escapeTimer -= dt;
     turn = (dl - dr) * 2.2 + wander * 0.9 + (Math.random() - 0.5) * 0.7;
   }
-  bot.a += Math.max(-1.25, Math.min(1.25, turn)) * dt;
+  // 실제 파리처럼 긴 원호 대신 짧은 직진 사이에 작고 빠른 방향 전환을 넣습니다.
+  saccadeTimer -= dt;
+  if (!feedingApproach && escapeTimer <= 0 && saccadeTimer <= 0) {
+    saccadeTurn = (Math.random() - 0.5) * 0.72;
+    saccadeTimer = 0.38 + Math.random() * 0.72;
+  }
+  if (saccadeTurn) {
+    const step = Math.sign(saccadeTurn) * Math.min(Math.abs(saccadeTurn), dt * 5.8);
+    bot.a += step;
+    saccadeTurn -= step;
+  }
+  bot.a += Math.max(-2.35, Math.min(2.35, turn)) * dt;
   const speed = 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
@@ -184,7 +198,7 @@ function move(dt) {
       escapeAngle = hit ? Math.atan2(bot.y - hit.o.y, bot.x - hit.o.x) : bot.a + (dl > dr ? -1 : 1) * 0.5;
     }
     // 각도 래핑을 고려한 최소 회전으로 충돌면에서 부드럽게 빠져나갑니다.
-    turnToward(escapeAngle, Math.min(1.1, dt * 4.2));
+    turnToward(escapeAngle, Math.min(0.85, dt * 6.2));
     // 경계 접촉 시 아주 조금씩 안쪽으로 밀어 다음 충돌 판정을 탈출시킵니다.
     const inner = arenaBounds(30);
     bot.x = Math.max(inner.minX, Math.min(inner.maxX, bot.x));
@@ -192,7 +206,7 @@ function move(dt) {
     stuckTime += dt;
   }
   if (stuckTime > 1.2) {
-    bot.a += (Math.random() < 0.5 ? -1 : 1) * (0.8 + Math.random() * 1.2);
+    bot.a += (Math.random() < 0.5 ? -1 : 1) * (0.48 + Math.random() * 0.42);
     stuckTime = 0;
   }
   // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
@@ -298,6 +312,7 @@ $("customize").onclick = () => {
 };
 $("fly-skin").onchange = () => {
   const style = $("fly-skin").value;
+  view?.customize(style);
   $("customize").textContent = style === flyStyle ? "적용됨" : ownedSkins.has(style) ? "무료로 적용" : "구매 (100)";
 };
 $("expand-farm").onclick = () => {
@@ -325,6 +340,8 @@ $("reset").onclick = () => {
   targetStall = 0;
   lastTargetDistance = Infinity;
   escapeTimer = 0;
+  saccadeTimer = 0;
+  saccadeTurn = 0;
   view?.setExpansion(0);
   paused = false;
   worker.postMessage({ type: "reset" });
