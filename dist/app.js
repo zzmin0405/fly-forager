@@ -269,6 +269,13 @@ $("customize").onclick = () => {
   view?.customize(flyStyle);
   $("customize").textContent = flyStyle >= 3 ? "외형 최대 단계" : `외형 변경 (${100})`;
 };
+$("expand-farm").onclick = () => {
+  if (score < 100 || worldLevel >= 3) return;
+  score -= 100;
+  worldLevel += 1;
+  view?.setExpansion(worldLevel);
+  $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";
+};
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
   foods = [];
@@ -295,6 +302,7 @@ $("reset").onclick = () => {
   $("pause").disabled = false;
   $("pause").textContent = "일시 정지";
   $("speed").textContent = "속도 1×";
+  $("expand-farm").textContent = "농장 확장 (100)";
   $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
 };
 $("loading").hidden = true;
@@ -313,7 +321,7 @@ async function boot() {
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
         $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
-        for (const id of ["food", "pause", "reset", "speed", "customize"]) $(id).disabled = false;
+        for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm"]) $(id).disabled = false;
       } else if (d.type === "step") {
         neuronView.update(d.neuronState);
         busy = false;
@@ -338,7 +346,7 @@ function fail(message) {
   $("load-note").textContent =
     message + " · 페이지를 새로고침해 다시 시도하세요.";
   $("loading").querySelector("progress").hidden = true;
-  for (const id of ["food", "pause", "reset", "speed", "customize"]) $(id).disabled = true;
+  for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm"]) $(id).disabled = true;
 }
 if (view) boot();
 // 화면과 같은 상태를 사용하는 선택적 WebMCP 인터페이스.
