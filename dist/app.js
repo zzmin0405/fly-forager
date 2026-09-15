@@ -1,4 +1,5 @@
 import { createWorld } from "./world.js?v=chase-fix-2";
+import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
   neuro = $("neural").getContext("2d");
@@ -24,6 +25,7 @@ let bot = { x: 130, y: 330, a: 0 },
   last = 0,
   stepAt = 0,
   worker;
+const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
   "먹이 · 오른쪽",
@@ -199,6 +201,7 @@ $("reset").onclick = () => {
   outputs = [0, 0, 0, 0];
   paused = false;
   worker.postMessage({ type: "reset" });
+  neuronView.reset();
   $("pause").disabled = false;
   $("pause").textContent = "일시 정지";
   $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
@@ -210,21 +213,24 @@ async function boot() {
     const response = await fetch("connectome.bin.gz");
     if (!response.ok) throw new Error("연결망 다운로드 실패");
     const buffer = await response.arrayBuffer();
-    worker = new Worker("brain.js", { type: "module" });
+    worker = new Worker("brain.js?v=neuron-view-1", { type: "module" });
     worker.onerror = (e) => fail(e.message);
     worker.onmessage = ({ data: d }) => {
       if (d.type === "ready") {
+        neuronView.setMeta(d);
         ready = true;
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
         $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
         for (const id of ["food", "pause", "reset"]) $(id).disabled = false;
       } else if (d.type === "step") {
+        neuronView.update(d.neuronState);
         busy = false;
         outputs = d.output;
         groups = d.groups;
         $("latency").textContent = d.ms.toFixed(1) + " ms";
-      } else if (d.type === "progress") $("status").textContent = d.message;
+      } else if (d.type === "inspect") neuronView.showLinks(d);
+      else if (d.type === "progress") $("status").textContent = d.message;
       else if (d.type === "error") fail(d.message);
     };
     worker.postMessage({ type: "init", buffer }, [buffer]);

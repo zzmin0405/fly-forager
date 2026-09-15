@@ -42,3 +42,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+뉴런 관찰실 데이터
+neuron-positions.bin, neuron-ids.json은 아래 공개 저장소의 coordinates.csv.gz 및 neurons.csv.gz에서 생성했습니다.
+https://github.com/snedea/flybrain (커밋 9191824d17871b7851645782d53d23f213ddb938)
+FlyWire 데이터의 기존 CC BY-NC 4.0 이용 조건이 적용됩니다. 각 뉴런의 첫 대표 좌표이며 신경 가지 전체나 생리학적 활동 측정값이 아닙니다.

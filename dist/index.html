@@ -12,7 +12,7 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d171c'/%3E%3Cpath d='M9 23L16 7L23 23L16 19Z' fill='%23bbf969'/%3E%3C/svg%3E"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="style.css?v=neuron-view-1" />
     <script type="importmap">
       { "imports": { "three": "./vendor/three.module.js" } }
     </script>
@@ -107,6 +107,12 @@
           </div>
         </aside>
       </div>
+      <section id="brain-panel" class="brain-panel" aria-labelledby="brain-title">
+        <div class="brain-toolbar"><div><span class="eyebrow">LIVE NEURAL ACTIVITY</span><h2 id="brain-title">초파리 뇌 관찰실</h2></div><div class="brain-actions"><button id="brain-freeze" aria-pressed="false">표시 정지</button><button id="brain-home">시점 초기화</button><button id="brain-expand" aria-expanded="false">크게 보기</button></div></div>
+        <div class="brain-controls"><label>밝기 <input id="brain-gain" type="range" min="1" max="40" value="12"><output id="brain-gain-value">12×</output></label><label><input id="brain-active" type="checkbox">반응 중인 뉴런만</label><span id="brain-live-status" role="status">좌표 불러오는 중</span></div>
+        <div class="brain-layout"><div class="brain-stage"><canvas id="brain-canvas" aria-label="실제 대표 좌표에 배치한 뉴런. 드래그로 회전, 스크롤로 확대, 점을 클릭하면 선택됩니다."></canvas><div class="brain-color-key"><span style="--key:#49dbea">양수 활동</span><span style="--key:#ffaf60">음수 활동</span><span style="--key:#ee91f4">게임 감각 입력</span></div><p class="brain-stage-hint">드래그로 회전 · 스크롤로 확대 · 점을 눌러 뉴런 선택</p></div><div class="brain-inspector"><h3>선택한 뉴런</h3><p id="brain-selected">점 또는 아래 목록을 선택하세요.</p><dl><dt>활동값</dt><dd id="brain-value">—</dd><dt>뉴런 집단</dt><dd id="brain-group">—</dd><dt>입력 채널</dt><dd id="brain-channel">—</dd><dt>나가는 연결</dt><dd id="brain-links">—</dd></dl><h3>반응이 강한 뉴런</h3><p class="caption">직접 자극한 뉴런 제외 · 절댓값 순</p><div id="brain-top"></div></div></div>
+        <p class="brain-footnote">실제 공개 대표 좌표에 점으로 표시합니다. 신경 가지 전체 모양은 아닙니다. 색과 밝기는 현재 게임 모델의 계산값이며 생물학적 발화가 아닙니다. 선택 시 표시하는 선은 정규화된 연결 강도 상위 80개입니다.</p>
+      </section>
       <details>
         <summary>이 게임에서 ‘실제 초파리 신경망’은 무엇인가요?</summary>
         <p>
@@ -139,6 +145,6 @@
         </p>
       </details>
     </main>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="app.js?v=neuron-view-2"></script>
   </body>
 </html>

@@ -5,7 +5,7 @@
   "scripts": {
     "vendor": "node vendor.mjs",
     "test": "node verify.mjs",
-    "check": "node --check dist/app.js && node --check dist/world.js && node --check dist/brain.js && node verify.mjs"
+    "check": "node --check dist/app.js && node --check dist/world.js && node --check dist/neuron-view.js && node --check dist/brain.js && node verify.mjs"
   },
   "keywords": [],
   "author": "",
