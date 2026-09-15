@@ -291,16 +291,17 @@ export function createWorld(canvas, obstacles) {
     mesh.castShadow = true; parent.add(mesh); return mesh;
   }
   for (const group of [beeParts, ladybugParts, fireflyParts, birdParts, sparrowParts, jetParts]) group.children.forEach(child => { child.visible = child.isLight; });
-  smooth(beeParts, new THREE.CapsuleGeometry(.24,.48,8,20), "#f2bd28", [0,.37,0], [1,1,1], [0,0,-Math.PI/2]);
-  smooth(beeParts, new THREE.SphereGeometry(.27,24,16), "#33291d", [.45,.4,0]);
+  smooth(beeParts, new THREE.CapsuleGeometry(.28,.3,8,20), "#f2bd28", [-.02,.38,0], [1,1,1], [0,0,-Math.PI/2]);
+  smooth(beeParts, new THREE.SphereGeometry(.31,24,16), "#f2bd28", [.37,.42,0]);
   for(const side of [-1,1]) {
-    smooth(beeParts,new THREE.SphereGeometry(.075,16,12),"#151818",[.64,.44,side*.17]);
-    smooth(beeParts,new THREE.CylinderGeometry(.018,.018,.35,12),"#2b251d",[.62,.66,side*.16],[1,1,1],[0,0,-.55]);
-    smooth(beeParts,new THREE.SphereGeometry(.04,12,8),"#2b251d",[.77,.78,side*.16]);
+    smooth(beeParts,new THREE.SphereGeometry(.105,16,12),"#18201d",[.58,.48,side*.2]);
+    smooth(beeParts,new THREE.CylinderGeometry(.014,.014,.22,10),"#2b251d",[.5,.68,side*.14],[1,1,1],[0,0,-.42]);
+    smooth(beeParts,new THREE.SphereGeometry(.032,12,8),"#2b251d",[.59,.78,side*.14]);
   }
-  for (const x of [-.18,.05,.28]) smooth(beeParts,new THREE.TorusGeometry(.23,.045,10,24),"#2b251d",[x,.37,0],[1,1,.72],[0,Math.PI/2,0]);
-  for (const side of [-1,1]) smooth(beeParts,new THREE.SphereGeometry(.32,20,12),"#dff8ff",[-.05,.58,side*.27],[1.35,.16,.7],[0,0,side*.22],{opacity:.72,roughness:.2});
-  smooth(beeParts,new THREE.ConeGeometry(.09,.32,16),"#2d251e",[-.55,.36,0],[1,1,1],[0,0,Math.PI/2]);
+  for (const x of [-.16,.08]) smooth(beeParts,new THREE.TorusGeometry(.27,.04,10,24),"#2b251d",[x,.38,0],[1,1,.82],[0,Math.PI/2,0]);
+  for (const side of [-1,1]) smooth(beeParts,new THREE.SphereGeometry(.26,20,12),"#dff8ff",[-.12,.62,side*.23],[1.25,.13,.62],[0,0,side*.16],{opacity:.72,roughness:.2});
+  smooth(beeParts,new THREE.ConeGeometry(.055,.2,14),"#2d251e",[-.48,.37,0],[1,1,1],[0,0,Math.PI/2]);
+  for(const x of [-.18,.08]) for(const side of [-1,1]) smooth(beeParts,new THREE.CapsuleGeometry(.018,.09,4,8),"#342b21",[x,.13,side*.17],[1,1,1],[0,0,.12]);
   smooth(ladybugParts,new THREE.SphereGeometry(.52,28,18),"#df332d",[-.05,.42,0],[1.2,.62,1]);
   smooth(ladybugParts,new THREE.SphereGeometry(.28,24,16),"#1a1d1d",[.43,.4,0],[1,.8,1]);
   smooth(ladybugParts,new THREE.BoxGeometry(.7,.035,.025),"#171a19",[-.08,.735,0]);
@@ -439,7 +440,7 @@ export function createWorld(canvas, obstacles) {
         jet:["#667986","#b6c3ca","#45545d","#8395a0","#9ec9dc"]
       };
       const palette = palettes[style] || palettes.default;
-      fly.scale.setScalar(style === "default" ? 1 : 1.15);
+      fly.scale.setScalar(style === "default" ? 1 : style === "bee" ? .92 : style === "jet" ? 1.18 : 1.06);
       flyBody.forEach((part,index)=>{part.material=part.material.clone();part.material.color.set(palette[index]);part.material.emissive?.set(style==="firefly"&&index===2?"#78ff45":"#000000");part.material.emissiveIntensity=style==="firefly"&&index===2?1.4:0;});
       birdParts.visible = style === "parrot";
       sparrowParts.visible = style === "sparrow";
@@ -455,7 +456,7 @@ export function createWorld(canvas, obstacles) {
         pivot.visible = !["parrot", "sparrow", "jet", "ladybug"].includes(style);
         pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); });
       });
-      legs.forEach(leg => { leg.visible = !["parrot", "sparrow", "jet"].includes(style); });
+      legs.forEach(leg => { leg.visible = !["bee", "ladybug", "firefly", "parrot", "sparrow", "jet"].includes(style); });
     },
     setExpansion(level = 0) {
       const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
