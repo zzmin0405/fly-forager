@@ -293,10 +293,12 @@ export function createWorld(canvas, obstacles) {
       creatures.setStyle(style);
     },
     setExpansion(level = 0) {
-      const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
+      const scale = 1 + Math.min(3, Math.max(0, level)) * 0.2;
       expansionScale = scale;
       world.scale.set(scale, 1, scale);
-      controls.maxDistance = 58 + Math.min(3, level) * 7;
+      controls.maxDistance = 58 + Math.min(3, level) * 12;
+      // 확장 후에도 농장 전체가 한 화면에 남도록 카메라를 한 단계씩 물린다.
+      camera.position.setLength(31 + Math.min(3, level) * 5.5);
       controls.target.y = -0.5;
     },
     home,
