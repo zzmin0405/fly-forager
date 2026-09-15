@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-expansion-4";
+import { createWorld } from "./world.js?v=map-expansion-5";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -62,6 +62,21 @@ function free(x, y) {
     obstacles.every((o) => Math.hypot(x - o.x, y - o.y) > o.r + 22)
   );
 }
+function randomObstacle() {
+  const b = arenaBounds(90);
+  for (let i = 0; i < 200; i++) {
+    const x = b.minX + Math.random() * (b.maxX - b.minX);
+    const y = b.minY + Math.random() * (b.maxY - b.minY);
+    // 초파리 시작 위치와 충분히 떨어진 곳에만 생성한다.
+    if (Math.hypot(x - bot.x, y - bot.y) > 150 && obstacles.every(o => Math.hypot(x-o.x, y-o.y) > o.r + 70))
+      return { x, y, r: 30 + Math.random() * 24 };
+  }
+  return { x: b.maxX - 120, y: b.maxY - 100, r: 34 };
+}
+function randomizeObstacles(count = 4) {
+  obstacles.splice(0, obstacles.length);
+  for (let i = 0; i < count; i++) obstacles.push(randomObstacle());
+}
 function addFood(x, y) {
   if (foods.length >= 100 + worldLevel * 50) return;
   if (x === undefined) {
@@ -75,6 +90,7 @@ function addFood(x, y) {
   }
   if (free(x, y)) foods.push({ x, y });
 }
+randomizeObstacles();
 for (let i = 0; i < 9; i++) addFood();
 setInterval(() => {
   if (ready && !paused) for (let i = 0; i < 1 + worldLevel; i++) addFood();
@@ -316,19 +332,14 @@ $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
   worldLevel += 1;
-  const expansionObstaclePool = [
-    { x: 190, y: 180, r: 32 }, { x: 820, y: 510, r: 35 },
-    { x: 210, y: 520, r: 30 }, { x: 830, y: 185, r: 34 },
-    { x: 500, y: 120, r: 32 }, { x: 500, y: 555, r: 34 },
-  ];
-  const from = (worldLevel - 1) * 2;
-  obstacles.push(...expansionObstaclePool.slice(from, from + 2));
+  obstacles.push(randomObstacle(), randomObstacle());
   view?.setExpansion(worldLevel);
   for (let i = 0; i < 15 * worldLevel; i++) addFood();
   $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
+  randomizeObstacles();
   foods = [];
   for (let i = 0; i < 9; i++) addFood();
   trail = [];

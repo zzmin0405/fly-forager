@@ -223,7 +223,7 @@ export function createWorld(canvas, obstacles) {
     }
     for (let i = 0; i < level * 2; i++) {
       const cloud = new THREE.Group();
-      cloud.position.set(-14 + i * 14, 4.8 + (i % 2) * 1.2, -8 - i * 5);
+      cloud.position.set(-18 + Math.random() * 32, 4.5 + Math.random() * 2.5, -14 + Math.random() * 24);
       block(cloud, 0, 0, 0, 4.5, .8, 1.5, "#f1fbf8");
       block(cloud, -.7, .6, 0, 2.4, .6, 1.4, "#f1fbf8");
       cloud.traverse(o => { o.castShadow = false; }); scene.add(cloud); dynamicClouds.push(cloud);
