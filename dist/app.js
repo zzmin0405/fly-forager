@@ -113,13 +113,17 @@ function move(dt) {
     return !best || d < best.d ? { f, d } : best;
   }, null);
   // 냄새가 충분히 강할 때만 먹이 쪽으로 고개를 돌립니다(약한 자극에는 배회).
+  let feedingApproach = false;
   if (nearest && nearest.d < 250) {
     const target = Math.atan2(nearest.f.y - bot.y, nearest.f.x - bot.x);
     let delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
-    turn += Math.max(-1.8, Math.min(1.8, delta)) * Math.exp(-nearest.d / 180) * 1.7;
+    // 먹이 반경에서는 좌우 센서의 진동보다 목표 방향을 우선해 원을 그리며 도는 현상을 막습니다.
+    feedingApproach = nearest.d < 72;
+    if (feedingApproach) turn = delta * 1.35;
+    else turn += Math.max(-1.8, Math.min(1.8, delta)) * Math.exp(-nearest.d / 180) * 1.7;
   }
   bot.a += Math.max(-2.8, Math.min(2.8, turn)) * dt;
-  const speed = 34 + Math.min(42, (fl + fr) * 28),
+  const speed = feedingApproach ? 26 : 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
   if (free(nx, ny)) {
