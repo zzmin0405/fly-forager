@@ -109,6 +109,10 @@ function sense() {
   }
   return s.map((x) => Math.min(1, x));
 }
+function turnToward(target, maxStep) {
+  const delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
+  bot.a += Math.max(-maxStep, Math.min(maxStep, delta));
+}
 function move(dt) {
   const [fl, fr, dl, dr] = outputs;
   const beforeX = bot.x, beforeY = bot.y;
@@ -156,11 +160,20 @@ function move(dt) {
   } else {
     energy -= dt * 4;
     // 경계에 비스듬히 붙으면 같은 벽을 계속 향할 수 있으므로 안쪽 법선으로 유도합니다.
-    if (bot.x < 42) bot.a = bot.a * 0.55 + 0 * 0.45;
-    else if (bot.x > W - 42) bot.a = bot.a * 0.55 + Math.PI * 0.45;
-    else if (bot.y < 42) bot.a = bot.a * 0.55 + Math.PI / 2 * 0.45;
-    else if (bot.y > H - 42) bot.a = bot.a * 0.55 - Math.PI / 2 * 0.45;
-    else bot.a += (dl > dr ? -1 : 1) * dt * 2.0;
+    let escapeAngle;
+    if (bot.x < 42) escapeAngle = 0;
+    else if (bot.x > W - 42) escapeAngle = Math.PI;
+    else if (bot.y < 42) escapeAngle = Math.PI / 2;
+    else if (bot.y > H - 42) escapeAngle = -Math.PI / 2;
+    else {
+      const hit = obstacles.reduce((best, o) => {
+        const distance = Math.hypot(bot.x - o.x, bot.y - o.y);
+        return !best || distance < best.distance ? { o, distance } : best;
+      }, null);
+      escapeAngle = hit ? Math.atan2(bot.y - hit.o.y, bot.x - hit.o.x) : bot.a + (dl > dr ? -1 : 1) * 0.5;
+    }
+    // 각도 래핑을 고려한 최소 회전으로 충돌면에서 부드럽게 빠져나갑니다.
+    turnToward(escapeAngle, Math.min(1.1, dt * 4.2));
     // 경계 접촉 시 아주 조금씩 안쪽으로 밀어 다음 충돌 판정을 탈출시킵니다.
     if (bot.x < 30) bot.x = 30;
     if (bot.x > W - 30) bot.x = W - 30;
