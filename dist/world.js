@@ -211,7 +211,15 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     const count = Math.min(expansionObstacles.length, level * 6);
     for (let i = 0; i < count; i++) {
-      const o = expansionObstacles[i], x = (o.x - 500) / 50, z = (o.y - 330) / 50, r = o.r / 50;
+      const o = expansionObstacles[i];
+      // 확장된 전체 면적에 분산하고 중앙 시작 지점은 피한다.
+      let x = 0, z = 0;
+      for (let tries = 0; tries < 40; tries++) {
+        x = (Math.random() * 2 - 1) * (halfX - 1.2);
+        z = (Math.random() * 2 - 1) * (halfZ - 1.2);
+        if (Math.hypot(x, z) > 4.5) break;
+      }
+      const r = o.r / 50;
       if (o.tree) {
         block(expansionDecor, x, .8, z, .42, 1.6, .42, "#765333");
         block(expansionDecor, x - .12, 1.7, z, r * 1.7, 1, r * 1.6, "#3f773e");
