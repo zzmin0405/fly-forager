@@ -134,8 +134,17 @@ function move(dt) {
     previousPosition = { x: bot.x, y: bot.y };
   } else {
     energy -= dt * 4;
-    // 장애물에 붙었을 때 반사하듯 크게 방향을 바꿔 제자리 회전을 줄입니다.
-    bot.a += (dl > dr ? -1 : 1) * dt * 3.8;
+    // 경계에 비스듬히 붙으면 같은 벽을 계속 향할 수 있으므로 안쪽 법선으로 유도합니다.
+    if (bot.x < 42) bot.a = bot.a * 0.55 + 0 * 0.45;
+    else if (bot.x > W - 42) bot.a = bot.a * 0.55 + Math.PI * 0.45;
+    else if (bot.y < 42) bot.a = bot.a * 0.55 + Math.PI / 2 * 0.45;
+    else if (bot.y > H - 42) bot.a = bot.a * 0.55 - Math.PI / 2 * 0.45;
+    else bot.a += (dl > dr ? -1 : 1) * dt * 3.8;
+    // 경계 접촉 시 아주 조금씩 안쪽으로 밀어 다음 충돌 판정을 탈출시킵니다.
+    if (bot.x < 30) bot.x = 30;
+    if (bot.x > W - 30) bot.x = W - 30;
+    if (bot.y < 30) bot.y = 30;
+    if (bot.y > H - 30) bot.y = H - 30;
     stuckTime += dt;
   }
   if (stuckTime > 1.2) {
