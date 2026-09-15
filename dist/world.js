@@ -179,10 +179,12 @@ export function createWorld(canvas, obstacles) {
   // 다리 6개와 날개를 가진 복셀 초파리. 몸의 앞쪽은 게임의 +X 방향이다.
   const fly = new THREE.Group();
   scene.add(fly);
-  block(fly, 0, 0.29, 0, 0.45, 0.32, 0.3, "#413a29");
-  block(fly, -0.2, 0.28, 0, 0.3, 0.26, 0.27, "#a78342");
-  block(fly, -0.29, 0.28, 0, 0.06, 0.27, 0.28, "#3b3628");
-  block(fly, 0.24, 0.33, 0, 0.22, 0.27, 0.32, "#595343");
+  const flyBody = [
+    block(fly, 0, 0.29, 0, 0.45, 0.32, 0.3, "#413a29"),
+    block(fly, -0.2, 0.28, 0, 0.3, 0.26, 0.27, "#a78342"),
+    block(fly, -0.29, 0.28, 0, 0.06, 0.27, 0.28, "#3b3628"),
+    block(fly, 0.24, 0.33, 0, 0.22, 0.27, 0.32, "#595343"),
+  ];
   for (const z of [-0.17, 0.17])
     block(fly, 0.28, 0.38, z, 0.14, 0.15, 0.1, "#e75a41");
   const wings = [];
@@ -222,6 +224,16 @@ export function createWorld(canvas, obstacles) {
       leg.rotation.x = side * 0.5;
     }
   }
+  const birdParts = new THREE.Group();
+  birdParts.visible = false;
+  fly.add(birdParts);
+  block(birdParts, 0.48, 0.34, 0, 0.22, 0.12, 0.13, "#f1b83b");
+  block(birdParts, -0.5, 0.34, 0, 0.32, 0.11, 0.12, "#4e9b57");
+  const jetParts = new THREE.Group();
+  jetParts.visible = false;
+  fly.add(jetParts);
+  block(jetParts, 0.5, 0.3, 0, 0.38, 0.1, 0.12, "#c7d1d8");
+  block(jetParts, -0.38, 0.48, 0, 0.18, 0.3, 0.08, "#596975");
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
     markerGeometry,
@@ -331,10 +343,19 @@ export function createWorld(canvas, obstacles) {
     chaseDistance = Math.max(1.4, Math.min(8, chaseDistance + event.deltaY * 0.006));
   }, { passive: false });
   return {
-    customize(style = 0) {
-      const level = Math.max(0, Math.min(3, style));
-      fly.scale.setScalar(1 + level * 0.12);
-      const wingColor = ["#e7f9fa", "#a9f0ff", "#ffd27a", "#ff9bd5"][level];
+    customize(style = "default") {
+      const palettes = {
+        default:["#413a29","#a78342","#3b3628","#595343","#e7f9fa"], bee:["#f4c430","#24211d","#f4c430","#24211d","#d9fbff"],
+        ladybug:["#e34234","#202020","#e34234","#202020","#ffe8ef"], firefly:["#263f30","#b7ff63","#eaff8f","#314b38","#c8ffd5"],
+        parrot:["#3da85b","#e84b3c","#287d48","#46b86b","#4b78db"], sparrow:["#8b694d","#c5a982","#6a4c38","#9b795a","#d8c6a7"],
+        jet:["#667986","#b6c3ca","#45545d","#8395a0","#9ec9dc"]
+      };
+      const palette = palettes[style] || palettes.default;
+      fly.scale.setScalar(style === "default" ? 1 : 1.15);
+      flyBody.forEach((part,index)=>{part.material=part.material.clone();part.material.color.set(palette[index]);part.material.emissive?.set(style==="firefly"&&index===2?"#78ff45":"#000000");part.material.emissiveIntensity=style==="firefly"&&index===2?1.4:0;});
+      birdParts.visible = style === "parrot" || style === "sparrow";
+      jetParts.visible = style === "jet";
+      const wingColor = palette[4];
       wings.forEach(pivot => pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); }));
     },
     setExpansion(level = 0) {

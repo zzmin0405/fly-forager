@@ -33,7 +33,7 @@ let bot = { x: 130, y: 330, a: 0 },
   targetStall = 0,
   lastTargetDistance = Infinity,
   escapeTimer = 0;
-let flyStyle = 0;
+let flyStyle = "default";
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
@@ -280,11 +280,14 @@ $("speed").onclick = () => {
 };
 $("customize").onclick = () => {
   if (score < 100) return;
+  const selectedStyle = $("fly-skin").value;
+  if (selectedStyle === flyStyle) return;
   score -= 100;
-  flyStyle = Math.min(3, flyStyle + 1);
+  flyStyle = selectedStyle;
   view?.customize(flyStyle);
-  $("customize").textContent = flyStyle >= 3 ? "외형 최대 단계" : `외형 변경 (${100})`;
+  $("customize").textContent = "적용됨";
 };
+$("fly-skin").onchange = () => { $("customize").textContent = "구매 (100)"; };
 $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
@@ -309,9 +312,10 @@ $("reset").onclick = () => {
   targetStall = 0;
   lastTargetDistance = Infinity;
   escapeTimer = 0;
-  flyStyle = 0;
+  flyStyle = "default";
   view?.setExpansion(0);
-  view?.customize(0);
+  view?.customize("default");
+  $("customize").textContent = "구매 (100)";
   paused = false;
   worker.postMessage({ type: "reset" });
   neuronView.reset();
@@ -337,7 +341,7 @@ async function boot() {
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
         $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
-        for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm"]) $(id).disabled = false;
+        for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm", "fly-skin"]) $(id).disabled = false;
       } else if (d.type === "step") {
         neuronView.update(d.neuronState);
         busy = false;
@@ -362,7 +366,7 @@ function fail(message) {
   $("load-note").textContent =
     message + " · 페이지를 새로고침해 다시 시도하세요.";
   $("loading").querySelector("progress").hidden = true;
-  for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm"]) $(id).disabled = true;
+  for (const id of ["food", "pause", "reset", "speed", "customize", "expand-farm", "fly-skin"]) $(id).disabled = true;
 }
 if (view) boot();
 // 화면과 같은 상태를 사용하는 선택적 WebMCP 인터페이스.
