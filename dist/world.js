@@ -185,8 +185,9 @@ export function createWorld(canvas, obstacles) {
     block(fly, -0.29, 0.28, 0, 0.06, 0.27, 0.28, "#3b3628"),
     block(fly, 0.24, 0.33, 0, 0.22, 0.27, 0.32, "#595343"),
   ];
+  const flyEyes = [];
   for (const z of [-0.17, 0.17])
-    block(fly, 0.28, 0.38, z, 0.14, 0.15, 0.1, "#e75a41");
+    flyEyes.push(block(fly, 0.28, 0.38, z, 0.14, 0.15, 0.1, "#e75a41"));
   const wings = [], legs = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
@@ -292,23 +293,34 @@ export function createWorld(canvas, obstacles) {
   for (const group of [beeParts, ladybugParts, fireflyParts, birdParts, sparrowParts, jetParts]) group.children.forEach(child => { child.visible = child.isLight; });
   smooth(beeParts, new THREE.CapsuleGeometry(.24,.48,8,20), "#f2bd28", [0,.37,0], [1,1,1], [0,0,-Math.PI/2]);
   smooth(beeParts, new THREE.SphereGeometry(.27,24,16), "#33291d", [.45,.4,0]);
+  for(const side of [-1,1]) {
+    smooth(beeParts,new THREE.SphereGeometry(.075,16,12),"#151818",[.64,.44,side*.17]);
+    smooth(beeParts,new THREE.CylinderGeometry(.018,.018,.35,12),"#2b251d",[.62,.66,side*.16],[1,1,1],[0,0,-.55]);
+    smooth(beeParts,new THREE.SphereGeometry(.04,12,8),"#2b251d",[.77,.78,side*.16]);
+  }
   for (const x of [-.18,.05,.28]) smooth(beeParts,new THREE.TorusGeometry(.23,.045,10,24),"#2b251d",[x,.37,0],[1,1,.72],[0,Math.PI/2,0]);
   for (const side of [-1,1]) smooth(beeParts,new THREE.SphereGeometry(.32,20,12),"#dff8ff",[-.05,.58,side*.27],[1.35,.16,.7],[0,0,side*.22],{opacity:.72,roughness:.2});
   smooth(beeParts,new THREE.ConeGeometry(.09,.32,16),"#2d251e",[-.55,.36,0],[1,1,1],[0,0,Math.PI/2]);
   smooth(ladybugParts,new THREE.SphereGeometry(.52,28,18),"#df332d",[-.05,.42,0],[1.2,.62,1]);
   smooth(ladybugParts,new THREE.SphereGeometry(.28,24,16),"#1a1d1d",[.43,.4,0],[1,.8,1]);
+  smooth(ladybugParts,new THREE.BoxGeometry(.7,.035,.025),"#171a19",[-.08,.735,0]);
   for(const x of [-.27,.04,.25]) for(const side of [-1,1]) smooth(ladybugParts,new THREE.SphereGeometry(.055,14,10),"#101313",[x,.72,side*.3]);
   smooth(fireflyParts,new THREE.CapsuleGeometry(.21,.58,8,20),"#294633",[.05,.36,0],[1,1,1],[0,0,-Math.PI/2]);
   smooth(fireflyParts,new THREE.SphereGeometry(.25,24,16),"#15251e",[.45,.39,0]);
   smooth(fireflyParts,new THREE.SphereGeometry(.25,24,16),"#baff55",[-.47,.37,0],[1.2,.8,.9],[0,0,0],{emissive:"#7dff34",emissiveIntensity:2});
+  for(const side of [-1,1]) smooth(fireflyParts,new THREE.SphereGeometry(.34,20,12),"#c9eee2",[-.05,.57,side*.27],[1.3,.12,.72],[0,0,side*.18],{opacity:.58,roughness:.15});
   for (const [group, body, wing, beak] of [[birdParts,"#37a35a","#236e43","#f2b53d"],[sparrowParts,"#8b6b4c","#654936","#d8a25b"]]) {
     smooth(group,new THREE.SphereGeometry(.42,24,16),body,[0,.42,0],[1.25,.78,.82]);
     smooth(group,new THREE.SphereGeometry(.28,22,14),body,[.42,.55,0]);
     smooth(group,new THREE.ConeGeometry(.12,.35,18),beak,[.72,.53,0],[1,1,1],[0,0,-Math.PI/2]);
+    smooth(group,new THREE.SphereGeometry(.055,14,10),"#111719",[.61,.64,-.2]);
+    smooth(group,new THREE.SphereGeometry(.055,14,10),"#111719",[.61,.64,.2]);
+    smooth(group,new THREE.SphereGeometry(.3,20,14),"#e8ddbd",[.19,.3,0],[.9,.7,.72]);
     for(const side of [-1,1]) smooth(group,new THREE.SphereGeometry(.34,20,12),wing,[-.05,.48,side*.3],[1.25,.18,.78],[0,0,side*.18]);
   }
   smooth(jetParts,new THREE.CapsuleGeometry(.16,.85,8,24),"#91a4af",[.05,.38,0],[1,1,1],[0,0,-Math.PI/2],{metalness:.7,roughness:.25});
   smooth(jetParts,new THREE.ConeGeometry(.17,.5,24),"#c8d5db",[.73,.38,0],[1,1,1],[0,0,-Math.PI/2],{metalness:.65,roughness:.2});
+  smooth(jetParts,new THREE.SphereGeometry(.22,20,12),"#65b7d1",[.35,.53,0],[1.25,.45,.72],[0,0,0],{metalness:.35,roughness:.1,opacity:.82});
   for(const side of [-1,1]) smooth(jetParts,new THREE.SphereGeometry(.38,20,12),"#627985",[-.05,.37,side*.36],[1.35,.12,.9],[0,0,side*.18],{metalness:.6,roughness:.3});
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
@@ -437,6 +449,7 @@ export function createWorld(canvas, obstacles) {
       fireflyParts.visible = style === "firefly";
       const customBody = ["bee", "ladybug", "firefly"].includes(style);
       flyBody.forEach(part => { part.visible = !customBody; });
+      flyEyes.forEach(eye => { eye.visible = style === "default"; });
       const wingColor = palette[4];
       wings.forEach(pivot => {
         pivot.visible = !["parrot", "sparrow", "jet", "ladybug"].includes(style);
