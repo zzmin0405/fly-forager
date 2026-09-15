@@ -276,6 +276,7 @@ export function createWorld(canvas, obstacles) {
   let cameraTime = performance.now();
   const chaseLook = new THREE.Vector3();
   let chaseEntering = false;
+  let chaseDistance = 2.8;
   function home(top = false) {
     firstPerson = false;
     controls.enabled = true;
@@ -324,6 +325,11 @@ export function createWorld(canvas, obstacles) {
       }),
     );
   });
+  canvas.addEventListener("wheel", (event) => {
+    if (!firstPerson) return;
+    event.preventDefault();
+    chaseDistance = Math.max(1.4, Math.min(8, chaseDistance + event.deltaY * 0.006));
+  }, { passive: false });
   return {
     customize(style = 0) {
       const level = Math.max(0, Math.min(3, style));
@@ -458,7 +464,7 @@ export function createWorld(canvas, obstacles) {
         // 배틀로얄식 어깨 너머 카메라: 캐릭터 뒤쪽 위에서 진행 방향을 바라본다.
         const anchor = new THREE.Vector3(fly.position.x, 0, fly.position.z);
         const shoulder = new THREE.Vector3(-direction.z, 0, direction.x);
-        const eye = anchor.clone().addScaledVector(direction, -2.8)
+        const eye = anchor.clone().addScaledVector(direction, -chaseDistance)
           .addScaledVector(shoulder, 0.5).add(new THREE.Vector3(0, 1.65, 0));
         const look = anchor.clone().add(new THREE.Vector3(0, 0.38, 0));
         const blend = reduced || chaseEntering ? 1 : 1 - Math.exp(-8 * cameraDt);
