@@ -24,7 +24,10 @@ let bot = { x: 130, y: 330, a: 0 },
   groups = [],
   last = 0,
   stepAt = 0,
-  worker;
+  worker,
+  wander = 0,
+  stuckTime = 0,
+  previousPosition = { x: 130, y: 330 };
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
@@ -99,17 +102,40 @@ function sense() {
 }
 function move(dt) {
   const [fl, fr, dl, dr] = outputs;
-  let turn = (fr - fl) * 6 + (dl - dr) * 5 + 0.32 * Math.max(0, 1 - fl - fr);
+  // 초파리처럼 계속 직선으로 달리지 않고, 짧은 배회 구간과 방향 전환을 섞습니다.
+  // 감각 입력은 주행 방향을 편향시키고, 무작위성은 완만하게 변해 자연스러운 탐색을 만듭니다.
+  wander += (Math.random() - 0.5) * dt * 1.8;
+  wander = Math.max(-0.8, Math.min(0.8, wander));
+  let turn = (fr - fl) * 5.5 + (dl - dr) * 6 + wander * 0.7;
+  const nearest = foods.reduce((best, f) => {
+    const d = Math.hypot(f.x - bot.x, f.y - bot.y);
+    return !best || d < best.d ? { f, d } : best;
+  }, null);
+  // 냄새가 충분히 강할 때만 먹이 쪽으로 고개를 돌립니다(약한 자극에는 배회).
+  if (nearest && nearest.d < 250) {
+    const target = Math.atan2(nearest.f.y - bot.y, nearest.f.x - bot.x);
+    let delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
+    turn += Math.max(-1.8, Math.min(1.8, delta)) * Math.exp(-nearest.d / 180) * 1.7;
+  }
   bot.a += Math.max(-2.8, Math.min(2.8, turn)) * dt;
-  const speed = 40 + Math.min(45, (fl + fr) * 30),
+  const speed = 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
   if (free(nx, ny)) {
     bot.x = nx;
     bot.y = ny;
+    const moved = Math.hypot(bot.x - previousPosition.x, bot.y - previousPosition.y);
+    stuckTime = moved < 0.08 ? stuckTime + dt : 0;
+    previousPosition = { x: bot.x, y: bot.y };
   } else {
     energy -= dt * 4;
-    bot.a += dt * 2.8;
+    // 장애물에 붙었을 때 반사하듯 크게 방향을 바꿔 제자리 회전을 줄입니다.
+    bot.a += (dl > dr ? -1 : 1) * dt * 3.8;
+    stuckTime += dt;
+  }
+  if (stuckTime > 1.2) {
+    bot.a += (Math.random() < 0.5 ? -1 : 1) * (0.8 + Math.random() * 1.2);
+    stuckTime = 0;
   }
   // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
   energy = Math.max(18, energy - dt * 0.55);
@@ -199,6 +225,9 @@ $("reset").onclick = () => {
   energy = 100;
   elapsed = 0;
   outputs = [0, 0, 0, 0];
+  wander = 0;
+  stuckTime = 0;
+  previousPosition = { x: 130, y: 330 };
   paused = false;
   worker.postMessage({ type: "reset" });
   neuronView.reset();
