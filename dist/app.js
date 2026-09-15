@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js";
+import { createWorld } from "./world.js?v=chase-fix-2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
   neuro = $("neural").getContext("2d");
