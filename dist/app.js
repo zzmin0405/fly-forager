@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-expansion-7";
+import { createWorld } from "./world.js?v=map-expansion-8";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -220,7 +220,18 @@ function move(dt) {
   }
   if (stuckTime > 1.2) {
     bot.a += (Math.random() < 0.5 ? -1 : 1) * (0.48 + Math.random() * 0.42);
+    stuckTime = 1.2;
+  }
+  // 좁은 장애물 틈에서 회전만 반복하는 경우 한 번에 옆으로 빠져나온다.
+  if (stuckTime > 2.4) {
+    const escape = Math.random() * Math.PI * 2;
+    const jump = 24;
+    const jx = bot.x + Math.cos(escape) * jump, jy = bot.y + Math.sin(escape) * jump;
+    if (free(jx, jy)) { bot.x = jx; bot.y = jy; }
+    bot.a = escape;
     stuckTime = 0;
+    targetStall = 0;
+    escapeTimer = 0.8;
   }
   // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
   energy = Math.max(18, energy - dt * 0.55);
