@@ -284,13 +284,13 @@ export function createWorld(canvas, obstacles) {
   block(fireflyParts, 0.14, 0.31, 0, 0.18, 0.34, 0.37, "#365c43");
   const glow = new THREE.PointLight("#b9ff55", 1.8, 3);
   glow.position.set(-0.48, 0.42, 0); fireflyParts.add(glow);
-  // 확대해도 형태가 유지되는 곡면 모델. 기존 복셀 부품은 호환용으로 남기고 숨긴다.
+  // 복셀 외형과 비교용으로 남긴 곡면 모델. Minecraft 스타일에서는 렌더링하지 않는다.
   function smooth(parent, geometry, color, position, scale = [1, 1, 1], rotation = [0, 0, 0], options = {}) {
     const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: options.roughness ?? 0.55, metalness: options.metalness ?? 0, emissive: options.emissive || "#000000", emissiveIntensity: options.emissiveIntensity || 0, transparent: options.opacity < 1, opacity: options.opacity ?? 1 }));
     mesh.position.set(...position); mesh.scale.set(...scale); mesh.rotation.set(...rotation);
-    mesh.castShadow = true; parent.add(mesh); return mesh;
+    mesh.castShadow = true; mesh.visible = false; parent.add(mesh); return mesh;
   }
-  for (const group of [beeParts, ladybugParts, fireflyParts, birdParts, sparrowParts, jetParts]) group.children.forEach(child => { child.visible = child.isLight; });
+  for (const group of [beeParts, ladybugParts, fireflyParts, birdParts, sparrowParts, jetParts]) group.children.forEach(child => { child.visible = true; });
   smooth(beeParts, new THREE.CapsuleGeometry(.28,.3,8,20), "#f2bd28", [-.02,.38,0], [1,1,1], [0,0,-Math.PI/2]);
   smooth(beeParts, new THREE.SphereGeometry(.31,24,16), "#f2bd28", [.37,.42,0]);
   for(const side of [-1,1]) {
@@ -323,6 +323,22 @@ export function createWorld(canvas, obstacles) {
   smooth(jetParts,new THREE.ConeGeometry(.17,.5,24),"#c8d5db",[.73,.38,0],[1,1,1],[0,0,-Math.PI/2],{metalness:.65,roughness:.2});
   smooth(jetParts,new THREE.SphereGeometry(.22,20,12),"#65b7d1",[.35,.53,0],[1.25,.45,.72],[0,0,0],{metalness:.35,roughness:.1,opacity:.82});
   for(const side of [-1,1]) smooth(jetParts,new THREE.SphereGeometry(.38,20,12),"#627985",[-.05,.37,side*.36],[1.35,.12,.9],[0,0,side*.18],{metalness:.6,roughness:.3});
+  // 작은 복셀로 얼굴과 표면 디테일을 만든다.
+  for (const side of [-1, 1]) {
+    block(beeParts, .61, .44, side * .2, .07, .09, .05, "#111817");
+    block(ladybugParts, .52, .51, side * .22, .06, .07, .05, "#f1f5df");
+    block(fireflyParts, .33, .48, side * .2, .055, .07, .045, "#c8f6de");
+    block(birdParts, .4, .58, side * .26, .065, .075, .045, "#17201d");
+    block(sparrowParts, .4, .58, side * .26, .065, .075, .045, "#17201d");
+  }
+  for (const x of [-.28, -.08, .12, .32]) {
+    block(beeParts, x, .6, -.29, .13, .055, .08, x % .4 ? "#2b251d" : "#f4c430");
+    block(beeParts, x, .6, .29, .13, .055, .08, x % .4 ? "#2b251d" : "#f4c430");
+  }
+  block(birdParts, .56, .42, 0, .22, .09, .12, "#f5c345");
+  block(sparrowParts, .54, .42, 0, .18, .075, .1, "#d7a15d");
+  block(jetParts, .18, .55, 0, .28, .09, .18, "#63b4d1");
+  for (const side of [-1, 1]) block(jetParts, -.5, .3, side * .18, .13, .13, .13, "#ff6a42");
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
     markerGeometry,
