@@ -199,6 +199,10 @@ export function createWorld(canvas, obstacles) {
     }
     for (let ix = 0; ix < width; ix += 2) { const x = -halfX + ix * .8; block(expansionDecor,x,.38,-halfZ,.14,.8,.14,"#cead76"); block(expansionDecor,x,.38,halfZ,.14,.8,.14,"#cead76"); }
     for (let iz = 0; iz < depth; iz += 2) { const z = -halfZ + iz * .775; block(expansionDecor,-halfX,.38,z,.14,.8,.14,"#cead76"); block(expansionDecor,halfX,.38,z,.14,.8,.14,"#cead76"); }
+    block(expansionDecor, 0, .4, -halfZ, width * .8, .11, .1, "#dfc08b");
+    block(expansionDecor, 0, .4, halfZ, width * .8, .11, .1, "#dfc08b");
+    block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
+    block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     const count = Math.min(expansionObstacles.length, level * 2);
     for (let i = 0; i < count; i++) {
       const o = expansionObstacles[i], x = (o.x - 500) / 50, z = (o.y - 330) / 50, r = o.r / 50;
