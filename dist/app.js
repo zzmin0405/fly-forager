@@ -109,7 +109,8 @@ function move(dt) {
     energy -= dt * 4;
     bot.a += dt * 2.8;
   }
-  energy -= dt * 0.55;
+  // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
+  energy = Math.max(18, energy - dt * 0.55);
   elapsed += dt;
   for (let i = foods.length - 1; i >= 0; i--)
     if (Math.hypot(foods[i].x - bot.x, foods[i].y - bot.y) < 21) {
@@ -121,16 +122,10 @@ function move(dt) {
     }
   trail.push({ x: bot.x, y: bot.y });
   if (trail.length > 600) trail.shift();
-  if (energy <= 0 || score >= 12) {
-    paused = true;
-    $("status").textContent =
-      score >= 12 ? "목표 달성 · 12개 수집!" : "게임 종료 · 에너지 소진";
-    $("pause").disabled = true;
-  }
   $("score").innerHTML =
-    `${String(score).padStart(2, "0")} <small>/ 12</small>`;
+    `${String(score).padStart(2, "0")} <small>/ ∞</small>`;
   $("energy").value = Math.max(0, energy);
-  $("energy-text").textContent = Math.max(0, Math.round(energy)) + "%";
+  $("energy-text").textContent = Math.round(energy) + "% · 무한 탐험";
   $("time").textContent =
     `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(Math.floor(elapsed % 60)).padStart(2, "0")}`;
 }
@@ -191,7 +186,7 @@ $("food").onclick = () => addFood();
 $("pause").onclick = () => {
   paused = !paused;
   $("pause").textContent = paused ? "계속하기" : "일시 정지";
-  $("status").textContent = paused ? "일시 정지" : "신경망이 플레이 중";
+    $("status").textContent = paused ? "일시 정지" : "신경망이 플레이 중 · 무한 탐험";
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
@@ -206,7 +201,7 @@ $("reset").onclick = () => {
   worker.postMessage({ type: "reset" });
   $("pause").disabled = false;
   $("pause").textContent = "일시 정지";
-  $("status").textContent = "신경망이 플레이 중";
+  $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
 };
 $("loading").hidden = true;
 $("status").textContent = "연결망 다운로드 중 · 12.4 MB";
@@ -222,7 +217,7 @@ async function boot() {
         ready = true;
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
-        $("status").textContent = "신경망이 플레이 중";
+        $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
         for (const id of ["food", "pause", "reset"]) $(id).disabled = false;
       } else if (d.type === "step") {
         busy = false;
