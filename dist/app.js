@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-expansion-8";
+import { createWorld } from "./world.js?v=map-expansion-9";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -59,8 +59,15 @@ function free(x, y) {
   const { minX, maxX, minY, maxY } = arenaBounds();
   return (
     x > minX && x < maxX && y > minY && y < maxY &&
-    obstacles.every((o) => Math.hypot(x - o.x, y - o.y) > o.r + 22)
+    obstacles.every((o) => Math.hypot(x - o.x, y - o.y) > o.r + 38)
   );
+}
+function pathFree(x1, y1, x2, y2) {
+  const dx = x2 - x1, dy = y2 - y1, len2 = dx * dx + dy * dy;
+  return obstacles.every(o => {
+    const t = len2 ? Math.max(0, Math.min(1, ((o.x - x1) * dx + (o.y - y1) * dy) / len2)) : 0;
+    return Math.hypot(x1 + dx * t - o.x, y1 + dy * t - o.y) > o.r + 38;
+  });
 }
 function randomObstacle() {
   const b = arenaBounds(90);
@@ -188,7 +195,7 @@ function move(dt) {
   const speed = 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
-  if (free(nx, ny)) {
+  if (free(nx, ny) && pathFree(bot.x, bot.y, nx, ny)) {
     bot.x = nx;
     bot.y = ny;
     const moved = Math.hypot(bot.x - previousPosition.x, bot.y - previousPosition.y);
