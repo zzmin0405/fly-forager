@@ -114,17 +114,19 @@ export function createWorld(canvas, obstacles) {
   world.add(terrain);
   const soil = block(world, 0, -1.72, 0, 18.6, 0.8, 11.8, "#645641");
   soil.castShadow = false;
+  const baseFence = new THREE.Group();
+  world.add(baseFence);
   // 외곽 울타리는 게임 경계를 표시한다.
   for (let x = -9.6; x <= 9.6; x += 1.6)
     for (const z of [-6.35, 6.35])
-      block(world, x, 0.38, z, 0.14, 0.8, 0.14, "#cead76");
+      block(baseFence, x, 0.38, z, 0.14, 0.8, 0.14, "#cead76");
   for (let z = -6.35; z <= 6.35; z += 1.58)
     for (const x of [-9.6, 9.6])
-      block(world, x, 0.38, z, 0.14, 0.8, 0.14, "#cead76");
+      block(baseFence, x, 0.38, z, 0.14, 0.8, 0.14, "#cead76");
   for (const z of [-6.35, 6.35])
-    block(world, 0, 0.4, z, 19.3, 0.11, 0.1, "#dfc08b");
+    block(baseFence, 0, 0.4, z, 19.3, 0.11, 0.1, "#dfc08b");
   for (const x of [-9.6, 9.6])
-    block(world, x, 0.4, 0, 0.1, 0.11, 12.7, "#dfc08b");
+    block(baseFence, x, 0.4, 0, 0.1, 0.11, 12.7, "#dfc08b");
   obstacles.forEach((o, i) => {
     const x = (o.x - 500) / 50,
       z = (o.y - 330) / 50,
@@ -217,7 +219,7 @@ export function createWorld(canvas, obstacles) {
     }
     for (let i = 0; i < level * 2; i++) {
       const cloud = new THREE.Group();
-      cloud.position.set(-18 + i * 12, 8 + (i % 2) * 2, -12 - i * 6);
+      cloud.position.set(-14 + i * 14, 4.8 + (i % 2) * 1.2, -8 - i * 5);
       block(cloud, 0, 0, 0, 4.5, .8, 1.5, "#f1fbf8");
       block(cloud, -.7, .6, 0, 2.4, .6, 1.4, "#f1fbf8");
       cloud.traverse(o => { o.castShadow = false; }); scene.add(cloud); dynamicClouds.push(cloud);
@@ -341,6 +343,7 @@ export function createWorld(canvas, obstacles) {
     setExpansion(level = 0) {
       // 실제 타일 좌표를 그대로 유지한다. 확장 레벨은 월드 크기와 카메라 거리만 바꾼다.
       expansionScale = 1;
+      baseFence.visible = level === 0;
       world.scale.set(1, 1, 1);
       camera.position.setLength(31 + Math.min(3, level) * 3.5);
       controls.maxDistance = 58 + Math.min(3, level) * 12;
