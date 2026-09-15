@@ -34,6 +34,9 @@ let bot = { x: 130, y: 330, a: 0 },
   lastTargetDistance = Infinity,
   escapeTimer = 0;
 let flyStyle = "default";
+let ownedSkins;
+try { ownedSkins = new Set(JSON.parse(localStorage.getItem("flycraft-owned-skins") || '["default"]')); }
+catch { ownedSkins = new Set(["default"]); }
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
@@ -279,15 +282,22 @@ $("speed").onclick = () => {
   $("speed").textContent = `속도 ${simSpeed}×`;
 };
 $("customize").onclick = () => {
-  if (score < 100) return;
   const selectedStyle = $("fly-skin").value;
   if (selectedStyle === flyStyle) return;
-  score -= 100;
+  if (!ownedSkins.has(selectedStyle)) {
+    if (score < 100) return;
+    score -= 100;
+    ownedSkins.add(selectedStyle);
+    localStorage.setItem("flycraft-owned-skins", JSON.stringify([...ownedSkins]));
+  }
   flyStyle = selectedStyle;
   view?.customize(flyStyle);
   $("customize").textContent = "적용됨";
 };
-$("fly-skin").onchange = () => { $("customize").textContent = "구매 (100)"; };
+$("fly-skin").onchange = () => {
+  const style = $("fly-skin").value;
+  $("customize").textContent = style === flyStyle ? "적용됨" : ownedSkins.has(style) ? "무료로 적용" : "구매 (100)";
+};
 $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
@@ -312,10 +322,7 @@ $("reset").onclick = () => {
   targetStall = 0;
   lastTargetDistance = Infinity;
   escapeTimer = 0;
-  flyStyle = "default";
   view?.setExpansion(0);
-  view?.customize("default");
-  $("customize").textContent = "구매 (100)";
   paused = false;
   worker.postMessage({ type: "reset" });
   neuronView.reset();

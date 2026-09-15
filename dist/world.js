@@ -234,6 +234,19 @@ export function createWorld(canvas, obstacles) {
   fly.add(jetParts);
   block(jetParts, 0.5, 0.3, 0, 0.38, 0.1, 0.12, "#c7d1d8");
   block(jetParts, -0.38, 0.48, 0, 0.18, 0.3, 0.08, "#596975");
+  const beeParts = new THREE.Group();
+  beeParts.visible = false;
+  fly.add(beeParts);
+  block(beeParts, -0.28, 0.3, 0, 0.28, 0.3, 0.34, "#f4c430");
+  block(beeParts, -0.08, 0.3, 0, 0.13, 0.32, 0.35, "#24211d");
+  block(beeParts, 0.12, 0.31, 0, 0.24, 0.34, 0.36, "#f4c430");
+  block(beeParts, 0.31, 0.32, 0, 0.13, 0.35, 0.36, "#24211d");
+  block(beeParts, 0.48, 0.34, 0, 0.22, 0.37, 0.38, "#f4c430");
+  block(beeParts, -0.57, 0.3, 0, 0.18, 0.08, 0.08, "#352d22");
+  for (const side of [-1, 1]) {
+    const antenna = block(beeParts, 0.61, 0.52, side * 0.14, 0.25, 0.035, 0.035, "#352d22");
+    antenna.rotation.z = -0.45;
+  }
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
     markerGeometry,
@@ -355,6 +368,8 @@ export function createWorld(canvas, obstacles) {
       flyBody.forEach((part,index)=>{part.material=part.material.clone();part.material.color.set(palette[index]);part.material.emissive?.set(style==="firefly"&&index===2?"#78ff45":"#000000");part.material.emissiveIntensity=style==="firefly"&&index===2?1.4:0;});
       birdParts.visible = style === "parrot" || style === "sparrow";
       jetParts.visible = style === "jet";
+      beeParts.visible = style === "bee";
+      flyBody.forEach(part => { part.visible = style !== "bee"; });
       const wingColor = palette[4];
       wings.forEach(pivot => pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); }));
     },
