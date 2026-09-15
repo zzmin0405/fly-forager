@@ -335,7 +335,7 @@ export function createWorld(canvas, obstacles) {
       world.scale.set(scale, 1, scale);
       controls.maxDistance = 58 + Math.min(3, level) * 12;
       // 확장 후에도 농장 전체가 한 화면에 남도록 카메라를 한 단계씩 물린다.
-      camera.position.setLength(31 + Math.min(3, level) * 2);
+      // 카메라 거리를 바꾸지 않아 확장된 농장 외곽이 화면에서 실제로 커진다.
       rebuildExpansionDecor(level);
       controls.target.y = -0.5;
     },
