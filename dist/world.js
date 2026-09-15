@@ -321,6 +321,12 @@ export function createWorld(canvas, obstacles) {
     );
   });
   return {
+    customize(style = 0) {
+      const level = Math.max(0, Math.min(3, style));
+      fly.scale.setScalar(1 + level * 0.12);
+      const wingColor = ["#e7f9fa", "#a9f0ff", "#ffd27a", "#ff9bd5"][level];
+      wings.forEach(pivot => pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); }));
+    },
     setExpansion(level = 0) {
       const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
       expansionScale = scale;

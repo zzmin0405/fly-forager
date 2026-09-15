@@ -30,6 +30,7 @@ let bot = { x: 130, y: 330, a: 0 },
   stuckTime = 0,
   previousPosition = { x: 130, y: 330 },
   worldLevel = 0;
+let flyStyle = 0;
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
@@ -165,7 +166,7 @@ function move(dt) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
   score++;
-      const nextLevel = Math.min(3, Math.floor(score / 8));
+      const nextLevel = Math.min(3, Math.floor(score / 100));
       if (nextLevel !== worldLevel) {
         worldLevel = nextLevel;
         view?.setExpansion(worldLevel);
@@ -246,6 +247,13 @@ $("speed").onclick = () => {
   simSpeed = simSpeed === 1 ? 2 : simSpeed === 2 ? 4 : 1;
   $("speed").textContent = `속도 ${simSpeed}×`;
 };
+$("customize").onclick = () => {
+  if (score < 100) return;
+  score -= 100;
+  flyStyle = Math.min(3, flyStyle + 1);
+  view?.customize(flyStyle);
+  $("customize").textContent = flyStyle >= 3 ? "외형 최대 단계" : `외형 변경 (${100})`;
+};
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
   foods = [];
@@ -260,7 +268,9 @@ $("reset").onclick = () => {
   stuckTime = 0;
   previousPosition = { x: 130, y: 330 };
   worldLevel = 0;
+  flyStyle = 0;
   view?.setExpansion(0);
+  view?.customize(0);
   paused = false;
   worker.postMessage({ type: "reset" });
   neuronView.reset();
@@ -285,7 +295,7 @@ async function boot() {
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
         $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
-        for (const id of ["food", "pause", "reset", "speed"]) $(id).disabled = false;
+        for (const id of ["food", "pause", "reset", "speed", "customize"]) $(id).disabled = false;
       } else if (d.type === "step") {
         neuronView.update(d.neuronState);
         busy = false;
@@ -310,7 +320,7 @@ function fail(message) {
   $("load-note").textContent =
     message + " · 페이지를 새로고침해 다시 시도하세요.";
   $("loading").querySelector("progress").hidden = true;
-  for (const id of ["food", "pause", "reset", "speed"]) $(id).disabled = true;
+  for (const id of ["food", "pause", "reset", "speed", "customize"]) $(id).disabled = true;
 }
 if (view) boot();
 // 화면과 같은 상태를 사용하는 선택적 WebMCP 인터페이스.
