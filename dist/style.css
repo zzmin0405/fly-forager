@@ -1,0 +1,775 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap");
+:root {
+  color-scheme: dark;
+  font-family: "Noto Sans KR", sans-serif;
+  color: #e7edea;
+  background: #0b1115;
+  font-size: 16px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+a,
+input {
+  touch-action: manipulation;
+}
+button {
+  font: inherit;
+  font-size: 0.875rem;
+  background: #1c292e;
+  color: #e7edea;
+  border: 1px solid #34444b;
+  border-radius: 6px;
+  padding: 10px 16px;
+  cursor: pointer;
+}
+button:hover {
+  border-color: #bbf969;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: wait;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+canvas:focus-visible {
+  outline: 2px solid #bbf969;
+  outline-offset: 4px;
+}
+header {
+  height: 80px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 4vw;
+  border-bottom: 1px solid #243138;
+}
+header button {
+  margin-left: auto;
+}
+.brand {
+  font:
+    500 17px "IBM Plex Mono",
+    monospace;
+  color: #bbf969;
+  text-decoration: none;
+}
+.brand span {
+  margin-left: 10px;
+  color: #eef3ef;
+}
+.tag {
+  font-size: 0.875rem;
+  color: #869c9f;
+  border-left: 1px solid #3b4a50;
+  padding-left: 24px;
+}
+main {
+  max-width: 1500px;
+  margin: auto;
+  padding: 35px 4vw;
+}
+.title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  gap: 20px;
+}
+.eyebrow {
+  font:
+    12px "IBM Plex Mono",
+    monospace;
+  letter-spacing: 2px;
+  color: #b9ee86;
+}
+h1 {
+  font-size: clamp(26px, 3vw, 38px);
+  letter-spacing: -1.5px;
+  margin: 9px 0 10px;
+}
+p {
+  color: #91a3aa;
+  line-height: 1.7;
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.score {
+  text-align: right;
+  min-width: 130px;
+}
+.score > span {
+  display: block;
+  font-size: 0.875rem;
+  color: #96a6ad;
+}
+.score strong {
+  font:
+    42px "IBM Plex Mono",
+    monospace;
+  color: #bbf969;
+}
+.score small {
+  font-size: 20px;
+  color: #526770;
+}
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  border: 1px solid #314149;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.arena {
+  position: relative;
+  min-width: 0;
+  background: #101c23;
+  display: flex;
+  flex-direction: column;
+}
+.arena-top,
+.arena-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 20px;
+  font-size: 0.875rem;
+  background: #132128;
+}
+.arena-top {
+  justify-content: space-between;
+  border-bottom: 1px solid #283942;
+}
+.arena-top #status {
+  color: #bbf969;
+}
+.arena-top #time {
+  font-family: "IBM Plex Mono", monospace;
+}
+#game {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1000/660;
+  display: block;
+  cursor: crosshair;
+}
+.arena-bottom {
+  border-top: 1px solid #283942;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+.arena-bottom > span {
+  margin-right: auto;
+  color: #96acb4;
+  font-size: 0.8125rem;
+}
+.arena-bottom button {
+  padding: 8px 12px;
+}
+aside {
+  padding: 22px;
+  background: #10191e;
+  border-left: 1px solid #314149;
+}
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.panel-heading h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+.panel-heading > span {
+  font: 12px "IBM Plex Mono";
+  color: #b9ee86;
+  border: 1px solid #3e5836;
+  border-radius: 4px;
+  padding: 3px 6px;
+}
+#neural {
+  display: block;
+  width: 100%;
+  margin-top: 15px;
+  background: #0a1318;
+  border-radius: 6px;
+}
+.caption {
+  font-size: 0.75rem;
+  margin: 8px 0 20px;
+  color: #7e959e;
+}
+.metrics {
+  border-top: 1px solid #26363e;
+  border-bottom: 1px solid #26363e;
+  padding: 12px 0;
+}
+.metrics div {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.875rem;
+  color: #8fa5ad;
+}
+.metrics strong {
+  font-family: "IBM Plex Mono";
+  font-size: 0.875rem;
+  color: #dbe5e5;
+}
+h3 {
+  font-size: 0.875rem;
+  margin: 22px 0 14px;
+}
+.sensor {
+  display: grid;
+  grid-template-columns: 78px 1fr 30px;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 0.75rem;
+  color: #a5b8bf;
+}
+.track {
+  height: 4px;
+  background: #29383e;
+  overflow: hidden;
+  border-radius: 3px;
+}
+.track i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: #b9ee86;
+}
+.sensor:nth-child(n + 3) i {
+  background: #ffab70;
+}
+.sensor b {
+  font: 12px "IBM Plex Mono";
+}
+.energy {
+  border-top: 1px solid #26363e;
+  margin-top: 22px;
+  padding-top: 18px;
+}
+.energy > span {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #a5b8bf;
+}
+.energy b {
+  color: #e7edea;
+}
+meter {
+  width: 100%;
+  height: 18px;
+  accent-color: #bbf969;
+}
+.legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 20px;
+  color: #839ca5;
+  font-size: 0.75rem;
+}
+.legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+.lime {
+  background: #bbf969;
+}
+.orange {
+  background: #ffb674;
+}
+.stone {
+  background: #567080;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #101c23ed;
+  padding: 30px;
+  text-align: center;
+  backdrop-filter: blur(3px);
+}
+.overlay h2 {
+  font-size: 1.35rem;
+}
+.overlay progress {
+  accent-color: #bbf969;
+  margin-top: 24px;
+  width: 220px;
+}
+.overlay[hidden] {
+  display: none;
+}
+details {
+  margin-top: 20px;
+  color: #8ca2ab;
+  font-size: 0.875rem;
+  border-bottom: 1px solid #243138;
+  padding: 0 0 18px;
+}
+summary {
+  cursor: pointer;
+  padding: 8px 0;
+}
+details p {
+  font-size: 0.875rem;
+  margin-top: 10px;
+  max-width: 1000px;
+}
+a {
+  color: #b9ee86;
+}
+@media (max-width: 900px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  aside {
+    border-left: 0;
+    border-top: 1px solid #314149;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+  }
+  #neural {
+    grid-column: 1;
+  }
+  .panel-heading {
+    grid-column: 1/-1;
+  }
+  .metrics {
+    grid-column: 2;
+    grid-row: 2/4;
+  }
+  .caption {
+    margin: 0;
+  }
+  .tag {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  header {
+    height: 65px;
+    padding: 0 18px;
+  }
+  .brand {
+    font-size: 14px;
+  }
+  main {
+    padding: 24px 14px;
+  }
+  .title {
+    align-items: flex-start;
+  }
+  .title p {
+    font-size: 0.8125rem;
+  }
+  .score {
+    min-width: 90px;
+  }
+  .score strong {
+    font-size: 32px;
+  }
+  .score small {
+    font-size: 16px;
+  }
+  aside {
+    padding: 18px;
+    gap: 8px 16px;
+  }
+  .arena-bottom {
+    padding: 12px;
+  }
+  .arena-bottom > span {
+    width: 100%;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+}
+@media (max-width: 900px) {
+  aside {
+    display: block;
+  }
+  #neural {
+    height: 180px;
+    object-fit: contain;
+  }
+  .metrics {
+    margin-top: 16px;
+  }
+  .sensors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 18px;
+  }
+  .energy {
+    margin-top: 16px;
+  }
+  .legend {
+    margin-top: 14px;
+  }
+}
+@media (max-width: 520px) {
+  .sensors {
+    display: block;
+  }
+}
+/* 3D 월드가 중심이 되는 게임 화면 */
+:root {
+  background: #111c20;
+}
+header {
+  height: 72px;
+  background: #152327;
+}
+.brand {
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: 1px;
+}
+.brand span {
+  color: #e8f0df;
+}
+.tag {
+  color: #9aada0;
+}
+main {
+  max-width: 1800px;
+  padding: 24px 28px;
+}
+.title {
+  margin-bottom: 20px;
+}
+.title h1 {
+  font-size: 25px;
+  letter-spacing: -0.8px;
+}
+.title p {
+  font-size: 0.875rem;
+}
+.score strong {
+  font-size: 36px;
+}
+.workspace {
+  grid-template-columns: minmax(0, 1fr) 285px;
+  border-color: #3e5148;
+  box-shadow: 0 16px 48px #0003;
+  border-radius: 8px;
+}
+.arena {
+  background: #a6d7e2;
+}
+.arena-top {
+  background: #1c2e2c;
+  border-color: #3e5148;
+  height: 46px;
+}
+.arena-bottom {
+  background: #1c2e2c;
+  border-color: #3e5148;
+}
+.world-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 570px;
+  overflow: hidden;
+}
+#game {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  touch-action: none;
+  cursor: grab;
+}
+#game:active {
+  cursor: grabbing;
+}
+.world-label {
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  z-index: 1;
+  pointer-events: none;
+  color: #233f37;
+  text-shadow: 0 1px #fff7;
+}
+.world-label > span {
+  display: block;
+  font-weight: 700;
+  font-size: 17px;
+}
+.world-label small {
+  display: block;
+  margin-top: 5px;
+  font:
+    12px "IBM Plex Mono",
+    monospace;
+  letter-spacing: 0.5px;
+  color: #3f625a;
+}
+.camera-tools {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.camera-tools button {
+  background: #f5fff1d9;
+  border: 1px solid #42664b33;
+  color: #294233;
+  border-radius: 4px;
+  font-size: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 2px 0 #38564418;
+}
+.camera-tools button:hover,
+.camera-tools button[aria-pressed="true"] {
+  background: #d1eda1;
+  border-color: #6c8f47;
+}
+.world-hint {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #17392fc9;
+  color: #e8f3df;
+  border: 1px solid #ffffff20;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.world-hint span {
+  padding: 0 6px;
+  color: #aec298;
+}
+#food {
+  background: #b6d878;
+  color: #23351c;
+  border: 1px solid #d4eda3;
+  box-shadow: 0 3px 0 #637d40;
+  border-radius: 4px;
+  font-weight: 700;
+}
+#food:hover {
+  background: #d2ec9c;
+}
+aside {
+  background: #172523;
+  border-color: #3e5148;
+}
+.panel-heading h2 {
+  font-size: 16px;
+}
+#neural {
+  background: #101c1a;
+}
+.metrics {
+  border-color: #35453d;
+}
+.energy {
+  border-color: #35453d;
+}
+button {
+  border-radius: 4px;
+}
+details {
+  border-color: #35453d;
+}
+.overlay {
+  background: #142523ed;
+}
+.legend .stone {
+  background: #9aab94;
+}
+.legend .lime {
+  background: #d1b366;
+}
+#score {
+  display: inline-block;
+  transform-origin: center;
+}
+@media (min-width: 1500px) {
+  .world-wrap {
+    min-height: 660px;
+  }
+}
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: minmax(0, 1fr) 255px;
+  }
+  .camera-tools {
+    top: auto;
+    bottom: 58px;
+  }
+  .world-wrap {
+    min-height: 550px;
+  }
+}
+@media (max-width: 900px) {
+  main {
+    padding: 20px 14px;
+  }
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+  .world-wrap {
+    min-height: 530px;
+  }
+  aside {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 24px;
+  }
+  .panel-heading {
+    grid-column: 1/-1;
+  }
+  #neural {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    height: 160px;
+  }
+  .caption {
+    grid-column: 1;
+    grid-row: 3;
+  }
+  .metrics {
+    grid-column: 2;
+    grid-row: 2/4;
+    margin: 0;
+  }
+  .sensors {
+    display: block;
+    grid-column: 2;
+    grid-row: 4/7;
+  }
+  aside h3 {
+    grid-column: 1;
+    grid-row: 4;
+    margin: 6px 0;
+  }
+  .energy {
+    grid-column: 1;
+    grid-row: 5;
+    margin: 0;
+  }
+  .legend {
+    grid-column: 1/-1;
+  }
+  .camera-tools {
+    top: 18px;
+    bottom: auto;
+    right: 12px;
+  }
+  .world-label {
+    top: 65px;
+  }
+  .tag {
+    display: none;
+  }
+}
+@media (max-width: 550px) {
+  header {
+    padding: 0 16px;
+    height: 62px;
+  }
+  .brand {
+    font-size: 18px;
+  }
+  .title {
+    gap: 10px;
+  }
+  .title h1 {
+    font-size: 21px;
+    max-width: 210px;
+    line-height: 1.4;
+  }
+  .title p {
+    font-size: 13px;
+  }
+  .score strong {
+    font-size: 30px;
+  }
+  .world-wrap {
+    min-height: 480px;
+  }
+  .camera-tools button {
+    font-size: 12px;
+    padding: 8px;
+  }
+  .world-hint {
+    font-size: 11px;
+    padding: 8px;
+  }
+  .arena-bottom > span {
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  aside {
+    display: block;
+  }
+  #neural {
+    height: 140px;
+  }
+  .metrics {
+    margin-top: 16px;
+  }
+  .sensors {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 12px;
+  }
+  .sensor {
+    grid-template-columns: 78px 1fr 24px;
+    gap: 4px;
+  }
+  .energy {
+    margin-top: 15px;
+  }
+  .world-label {
+    left: 16px;
+  }
+}
+h1,
+p,
+button {
+  word-break: keep-all;
+}
+.camera-tools button {
+  font-size: 14px;
+}
+.world-hint {
+  font-size: 12px;
+}
+@media (max-width: 550px) {
+  .camera-tools button {
+    font-size: 12px;
+  }
+  .title h1 {
+    max-width: 220px;
+  }
+}

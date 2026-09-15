@@ -1,0 +1,44 @@
+초파리 포레이저 — 데이터 출처와 모델 범위
+
+데이터: FlyWire FAFB v783, snedea/flybrain의 connectome.bin.gz 및 neuron_meta.json
+출처: https://github.com/snedea/flybrain
+사용한 저장소 커밋: 9191824d17871b7851645782d53d23f213ddb938
+논문: Dorkenwald et al. (2024), Neuronal wiring diagram of an adult brain.
+https://doi.org/10.1038/s41586-024-07558-y
+FlyWire 데이터 이용 조건: CC BY-NC 4.0
+https://creativecommons.org/licenses/by-nc/4.0/
+https://www.flywire.ai/policies
+
+뉴런 139,255개와 방향성 연결 2,698,236개. 파일의 연결 행은 개별 시냅스 수가 아닙니다.
+상류 변환기는 신경전달물질로 연결 부호를 정하고 뉴런 쌍별 연결을 합산합니다.
+이 사이트는 위 파일의 모든 연결을 사용하지만 원본 전체 시냅스 데이터와 동일하다고 주장하지 않습니다.
+추가 변경: 도착 뉴런별 절댓값 연결 합으로 정규화, tanh 3단계 rate 계산.
+감각 뉴런 중 일부를 4개 게임용 채널에 배정하고, 연결망의 단위 자극 응답으로 선형 출력 디코더를 보정합니다.
+생물학적 좌우 감각 또는 운동 뉴런의 해부학적 배정이 아닙니다.
+음수 값도 허용하는 단순 rate 모델이며 발화 빈도 또는 원 논문의 LIF 구현이 아닙니다.
+기본 전진, 탐색 회전, 충돌 반사, 먹이·위험을 운동으로 바꾸는 출력 해석은 게임 규칙입니다.
+게임 플레이 학습, 의식, 기억, 실제 초파리의 행동 재현을 주장하지 않습니다.
+네트워크를 실행할 수 없으면 게임을 중단하며 가짜 신경망으로 대체하지 않습니다.
+
+상류 데이터 패키지의 라이선스 고지:
+MIT License
+
+Copyright (c) [2017] [Seth Miller]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

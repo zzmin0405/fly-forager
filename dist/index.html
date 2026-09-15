@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>FLYCRAFT · 초파리의 작은 세계</title>
+    <meta
+      name="description"
+      content="실제 FlyWire 연결망으로 움직이는 브라우저 먹이 수집 게임"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d171c'/%3E%3Cpath d='M9 23L16 7L23 23L16 19Z' fill='%23bbf969'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three.module.js" } }
+    </script>
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="./">▧ <span>FLYCRAFT</span></a
+      ><span class="tag">초파리의 작은 세계</span
+      ><button id="reset" disabled>새 게임 ↻</button>
+    </header>
+    <main>
+      <section class="title">
+        <div>
+          <span class="eyebrow">WORLD 01 / 초록빛 섬</span>
+          <h1>블록 세상에서, 먹이를 찾아서.</h1>
+          <p>초파리는 스스로 움직입니다. 먹이를 놓고 탐험을 지켜보세요.</p>
+        </div>
+        <div class="score">
+          <span>수집한 먹이</span
+          ><strong id="score">00 <small>/ 12</small></strong>
+        </div>
+      </section>
+      <div class="workspace">
+        <section class="arena">
+          <div class="arena-top">
+            <span id="status" role="status">연결망 준비 중</span
+            ><span id="time">00:00</span>
+          </div>
+          <div class="world-wrap">
+            <div class="world-label">
+              <span>초록빛 섬</span><small>FLYWIRE v783 · 게임용 모델</small>
+            </div>
+            <div class="camera-tools" aria-label="카메라 조작">
+              <button id="camera-home" title="기본 시점">기본 시점</button
+              ><button id="camera-top" title="위에서 보기">위에서</button
+              ><button id="follow" aria-pressed="false">초파리 따라가기</button>
+            </div>
+            <canvas
+              id="game"
+              width="1000"
+              height="660"
+              aria-label="3D 블록 경기장. 드래그로 회전, 휠로 확대, 클릭으로 먹이 배치"
+              tabindex="0"
+            ></canvas>
+            <div class="world-hint">
+              드래그로 회전 <span>·</span> 스크롤로 확대 <span>·</span> 클릭으로
+              먹이 놓기
+            </div>
+          </div>
+          <div class="arena-bottom">
+            <span>목표: 에너지가 다 떨어지기 전에 먹이 12개 수집</span
+            ><button id="food" disabled>＋ 먹이 놓기</button
+            ><button id="pause" disabled>일시 정지</button>
+          </div>
+          <div id="loading" class="overlay">
+            <div>
+              <span class="eyebrow">FLYWIRE v783</span>
+              <h2 id="load-title">초파리 연결망을 불러옵니다</h2>
+              <p id="load-note">처음 실행할 때 약 12.4 MB를 다운로드합니다.</p>
+              <progress></progress>
+            </div>
+          </div>
+        </section>
+        <aside>
+          <div class="panel-heading">
+            <h2>초파리 관찰</h2>
+            <span>LIVE</span>
+          </div>
+          <canvas
+            id="neural"
+            width="320"
+            height="180"
+            aria-label="63개 뉴런 집단의 평균 활동"
+          ></canvas>
+          <p class="caption">각 점은 뉴런 집단 · 밝기는 평균 활동</p>
+          <div class="metrics">
+            <div><span>뉴런</span><strong id="nodes">—</strong></div>
+            <div><span>방향성 연결</span><strong id="edges">—</strong></div>
+            <div><span>뇌 계산 시간</span><strong id="latency">—</strong></div>
+          </div>
+          <h3>봇이 감지하는 것</h3>
+          <div class="sensors" id="sensors"></div>
+          <div class="energy">
+            <span>에너지 <b id="energy-text">100%</b></span
+            ><meter id="energy" min="0" max="100" value="100"></meter>
+          </div>
+          <div class="legend">
+            <span><i class="lime"></i>봇</span
+            ><span><i class="orange"></i>먹이</span
+            ><span><i class="stone"></i>장애물</span>
+          </div>
+        </aside>
+      </div>
+      <details>
+        <summary>이 게임에서 ‘실제 초파리 신경망’은 무엇인가요?</summary>
+        <p>
+          FlyWire v783에서 가공한 뉴런 139,255개, 연결 2,698,236개의 그래프를
+          사용합니다. 전체 원본 시냅스를 포함하는 파일은 아닙니다. 연결 강도를
+          정규화한 단순 rate 모델을 실행하며, 실제 초파리의 생리·기억·학습을
+          재현하지 않습니다.
+        </p>
+        <p>
+          먹이와 장애물 정보는 사람이 정한 감각 인코더로 전달합니다. 출력은
+          연결망의 자극 반응으로 보정한 디코더를 거쳐 속도·회전으로 바뀝니다.
+          게임 실력을 학습한 모델은 아닙니다. 감각의 좌우 구분과 행동 해석도
+          게임용 매핑입니다.
+        </p>
+        <p>
+          <a
+            href="https://github.com/snedea/flybrain"
+            target="_blank"
+            rel="noreferrer"
+            >가공 데이터 출처</a
+          >
+          ·
+          <a
+            href="https://doi.org/10.1038/s41586-024-07558-y"
+            target="_blank"
+            rel="noreferrer"
+            >FlyWire 논문</a
+          >
+          · <a href="NOTICE.txt">데이터·라이선스</a>
+        </p>
+      </details>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
