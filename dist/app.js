@@ -56,7 +56,7 @@ function free(x, y) {
   );
 }
 function addFood(x, y) {
-  if (foods.length >= 24) return;
+  if (foods.length >= 100) return;
   if (x === undefined) {
     for (let i = 0; i < 100; i++) {
       x = 35 + Math.random() * (W - 70);
@@ -67,6 +67,9 @@ function addFood(x, y) {
   if (free(x, y)) foods.push({ x, y });
 }
 for (let i = 0; i < 9; i++) addFood();
+setInterval(() => {
+  if (ready && !paused && foods.length < 100) addFood();
+}, 10000);
 let view;
 try {
   view = createWorld(canvas, obstacles);
