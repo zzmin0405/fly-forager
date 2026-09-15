@@ -188,6 +188,15 @@ export function createWorld(canvas, obstacles) {
   function rebuildExpansionDecor(level = 0) {
     expansionDecor.clear();
     dynamicClouds.splice(0).forEach(cloud => scene.remove(cloud));
+    const width = 25 + level * 8, depth = 17 + level * 6;
+    const halfX = (width - 1) * .4, halfZ = (depth - 1) * .3875;
+    for (let ix = 0; ix < width; ix++) for (let iz = 0; iz < depth; iz++) {
+      const x = -halfX + ix * .8, z = -halfZ + iz * .775;
+      if (Math.abs(x) <= 9.61 && Math.abs(z) <= 6.21) continue;
+      block(expansionDecor, x, -.18, z, .8, .36, .775, ix % 2 === iz % 2 ? "#7eac50" : "#75a64d");
+    }
+    for (let ix = 0; ix < width; ix += 2) { const x = -halfX + ix * .8; block(expansionDecor,x,.38,-halfZ,.14,.8,.14,"#cead76"); block(expansionDecor,x,.38,halfZ,.14,.8,.14,"#cead76"); }
+    for (let iz = 0; iz < depth; iz += 2) { const z = -halfZ + iz * .775; block(expansionDecor,-halfX,.38,z,.14,.8,.14,"#cead76"); block(expansionDecor,halfX,.38,z,.14,.8,.14,"#cead76"); }
     const count = Math.min(expansionObstacles.length, level * 2);
     for (let i = 0; i < count; i++) {
       const o = expansionObstacles[i], x = (o.x - 500) / 50, z = (o.y - 330) / 50, r = o.r / 50;
@@ -332,7 +341,8 @@ export function createWorld(canvas, obstacles) {
     setExpansion(level = 0) {
       const scale = 1 + Math.min(3, Math.max(0, level)) * 0.35;
       expansionScale = scale;
-      world.scale.set(scale, 1, scale);
+      world.scale.set(1, 1, 1);
+      camera.position.setLength(31 + Math.min(3, level) * 3.5);
       controls.maxDistance = 58 + Math.min(3, level) * 12;
       // 확장 후에도 농장 전체가 한 화면에 남도록 카메라를 한 단계씩 물린다.
       // 카메라 거리를 바꾸지 않아 확장된 농장 외곽이 화면에서 실제로 커진다.
