@@ -30,6 +30,9 @@ export function createWorld(canvas, obstacles) {
   controls.minPolarAngle = 0.12;
   controls.maxPolarAngle = Math.PI * 0.45;
   controls.enablePan = false;
+  controls.enablePan = true;
+  controls.mouseButtons.RIGHT = THREE.MOUSE.PAN;
+  controls.touches.ONE = THREE.TOUCH.ROTATE;
   scene.add(new THREE.HemisphereLight("#e7fbff", "#718153", 2.5));
   const sun = new THREE.DirectionalLight("#fff2cf", 3.5);
   sun.position.set(-12, 24, 10);
@@ -312,6 +315,7 @@ export function createWorld(canvas, obstacles) {
   };
   new ResizeObserver(resize).observe(canvas);
   resize();
+  canvas.addEventListener("contextmenu", (event) => event.preventDefault());
   canvas.addEventListener("webglcontextlost", (e) => {
     e.preventDefault();
     document.dispatchEvent(
