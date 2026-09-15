@@ -264,8 +264,12 @@ export function createWorld(canvas, obstacles) {
   const raycaster = new THREE.Raycaster(),
     plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   let following = false,
+    firstPerson = false,
     cameraAnimation;
   function home(top = false) {
+    firstPerson = false;
+    controls.enabled = true;
+    document.getElementById("first-person").setAttribute("aria-pressed", "false");
     following = false;
     document.getElementById("follow").setAttribute("aria-pressed", "false");
     cameraAnimation?.cancel();
@@ -308,7 +312,18 @@ export function createWorld(canvas, obstacles) {
   });
   return {
     home,
+    firstPerson() {
+      firstPerson = !firstPerson;
+      controls.enabled = !firstPerson;
+      document.getElementById("first-person").setAttribute("aria-pressed", String(firstPerson));
+      return firstPerson;
+    },
     follow() {
+      if (firstPerson) {
+        firstPerson = false;
+        controls.enabled = true;
+        document.getElementById("first-person").setAttribute("aria-pressed", "false");
+      }
       following = !following;
       document
         .getElementById("follow")
@@ -402,7 +417,13 @@ export function createWorld(canvas, obstacles) {
       }
       pathGeometry.attributes.position.needsUpdate = true;
       pathGeometry.setDrawRange(0, trail.length);
-      if (following) {
+      if (firstPerson) {
+        const direction = new THREE.Vector3(Math.cos(bot.a), 0, Math.sin(bot.a));
+        const eye = fly.position.clone().add(new THREE.Vector3(0, 1.05, 0));
+        camera.position.lerp(eye, 0.2);
+        const look = eye.clone().add(direction.multiplyScalar(8));
+        camera.lookAt(look);
+      } else if (following) {
         const old = controls.target.clone();
         controls.target.lerp(
           new THREE.Vector3(fly.position.x, 0, fly.position.z),

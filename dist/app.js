@@ -178,6 +178,7 @@ canvas.addEventListener("pointercancel", () => {
 });
 $("camera-home").onclick = () => view?.home();
 $("camera-top").onclick = () => view?.home(true);
+$("first-person").onclick = () => view?.firstPerson();
 $("follow").onclick = () => view?.follow();
 document.addEventListener("world-error", (e) => fail(e.detail));
 canvas.addEventListener("keydown", (e) => {
