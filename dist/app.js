@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=farm-scale-1";
+import { createWorld } from "./world.js?v=expansion-decor-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -319,6 +319,13 @@ $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
   worldLevel += 1;
+  const expansionObstaclePool = [
+    { x: 190, y: 180, r: 32 }, { x: 820, y: 510, r: 35 },
+    { x: 210, y: 520, r: 30 }, { x: 830, y: 185, r: 34 },
+    { x: 500, y: 120, r: 32 }, { x: 500, y: 555, r: 34 },
+  ];
+  const from = (worldLevel - 1) * 2;
+  obstacles.push(...expansionObstaclePool.slice(from, from + 2));
   view?.setExpansion(worldLevel);
   for (let i = 0; i < 15 * worldLevel; i++) addFood();
   $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";

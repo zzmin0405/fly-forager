@@ -177,6 +177,43 @@ export function createWorld(canvas, obstacles) {
     scene.add(cloud);
     clouds.push(cloud);
   }
+  const expansionDecor = new THREE.Group();
+  world.add(expansionDecor);
+  const dynamicClouds = [];
+  const expansionObstacles = [
+    { x: 190, y: 180, r: 32, tree: true }, { x: 820, y: 510, r: 35 },
+    { x: 210, y: 520, r: 30 }, { x: 830, y: 185, r: 34, tree: true },
+    { x: 500, y: 120, r: 32, tree: true }, { x: 500, y: 555, r: 34 },
+  ];
+  function rebuildExpansionDecor(level = 0) {
+    expansionDecor.clear();
+    dynamicClouds.splice(0).forEach(cloud => scene.remove(cloud));
+    const count = Math.min(expansionObstacles.length, level * 2);
+    for (let i = 0; i < count; i++) {
+      const o = expansionObstacles[i], x = (o.x - 500) / 50, z = (o.y - 330) / 50, r = o.r / 50;
+      if (o.tree) {
+        block(expansionDecor, x, .8, z, .42, 1.6, .42, "#765333");
+        block(expansionDecor, x - .12, 1.7, z, r * 1.7, 1, r * 1.6, "#3f773e");
+        block(expansionDecor, x + .1, 2.4, z - .08, r * 1.4, .7, r * 1.3, "#579444");
+        block(expansionDecor, x, .08, z, r * 1.6, .16, r * 1.6, "#557d40");
+      } else {
+        block(expansionDecor, x, .28, z, r * 1.6, .56, r * 1.35, "#909b91");
+        block(expansionDecor, x - .2, .72, z - .13, r * 1.1, .4, r * .95, "#b1bbb0");
+        block(expansionDecor, x + .45, .17, z + .4, .55, .34, .5, "#748579");
+      }
+    }
+    for (let i = 0; i < level * 28; i++) {
+      const x = (noise(i + 80, level * 17) - .5) * (18 + level * 7), z = (noise(i + 80, level * 29) - .5) * (12 + level * 5);
+      block(expansionDecor, x, .09, z, .05, .18, .06, i % 7 === 0 ? "#e8cf73" : "#528139");
+    }
+    for (let i = 0; i < level * 2; i++) {
+      const cloud = new THREE.Group();
+      cloud.position.set(-18 + i * 12, 8 + (i % 2) * 2, -12 - i * 6);
+      block(cloud, 0, 0, 0, 4.5, .8, 1.5, "#f1fbf8");
+      block(cloud, -.7, .6, 0, 2.4, .6, 1.4, "#f1fbf8");
+      cloud.traverse(o => { o.castShadow = false; }); scene.add(cloud); dynamicClouds.push(cloud);
+    }
+  }
   const creatures = createCreatures();
   const fly = creatures.root;
   scene.add(fly);
@@ -299,6 +336,7 @@ export function createWorld(canvas, obstacles) {
       controls.maxDistance = 58 + Math.min(3, level) * 12;
       // 확장 후에도 농장 전체가 한 화면에 남도록 카메라를 한 단계씩 물린다.
       camera.position.setLength(31 + Math.min(3, level) * 5.5);
+      rebuildExpansionDecor(level);
       controls.target.y = -0.5;
     },
     home,
