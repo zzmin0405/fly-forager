@@ -107,7 +107,7 @@ function move(dt) {
   // 감각 입력은 주행 방향을 편향시키고, 무작위성은 완만하게 변해 자연스러운 탐색을 만듭니다.
   wander += (Math.random() - 0.5) * dt * 1.8;
   wander = Math.max(-0.8, Math.min(0.8, wander));
-  let turn = (fr - fl) * 5.5 + (dl - dr) * 6 + wander * 0.7;
+  let turn = (fr - fl) * 3.4 + (dl - dr) * 3.8 + wander * 0.45;
   const nearest = foods.reduce((best, f) => {
     const d = Math.hypot(f.x - bot.x, f.y - bot.y);
     return !best || d < best.d ? { f, d } : best;
@@ -119,10 +119,10 @@ function move(dt) {
     let delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
     // 먹이 반경에서는 좌우 센서의 진동보다 목표 방향을 우선해 원을 그리며 도는 현상을 막습니다.
     feedingApproach = nearest.d < 72;
-    if (feedingApproach) turn = delta * 1.35;
-    else turn += Math.max(-1.8, Math.min(1.8, delta)) * Math.exp(-nearest.d / 180) * 1.7;
+    if (feedingApproach) turn = delta * 0.82;
+    else turn += Math.max(-1.2, Math.min(1.2, delta)) * Math.exp(-nearest.d / 180) * 1.05;
   }
-  bot.a += Math.max(-2.8, Math.min(2.8, turn)) * dt;
+  bot.a += Math.max(-1.25, Math.min(1.25, turn)) * dt;
   const speed = feedingApproach ? 26 : 34 + Math.min(42, (fl + fr) * 28),
     nx = bot.x + Math.cos(bot.a) * speed * dt,
     ny = bot.y + Math.sin(bot.a) * speed * dt;
@@ -139,7 +139,7 @@ function move(dt) {
     else if (bot.x > W - 42) bot.a = bot.a * 0.55 + Math.PI * 0.45;
     else if (bot.y < 42) bot.a = bot.a * 0.55 + Math.PI / 2 * 0.45;
     else if (bot.y > H - 42) bot.a = bot.a * 0.55 - Math.PI / 2 * 0.45;
-    else bot.a += (dl > dr ? -1 : 1) * dt * 3.8;
+    else bot.a += (dl > dr ? -1 : 1) * dt * 2.0;
     // 경계 접촉 시 아주 조금씩 안쪽으로 밀어 다음 충돌 판정을 탈출시킵니다.
     if (bot.x < 30) bot.x = 30;
     if (bot.x > W - 30) bot.x = W - 30;
