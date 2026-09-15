@@ -187,7 +187,7 @@ export function createWorld(canvas, obstacles) {
   ];
   for (const z of [-0.17, 0.17])
     block(fly, 0.28, 0.38, z, 0.14, 0.15, 0.1, "#e75a41");
-  const wings = [];
+  const wings = [], legs = [];
   for (const side of [-1, 1]) {
     const pivot = new THREE.Group();
     pivot.position.set(-0.06, 0.47, side * 0.1);
@@ -222,6 +222,7 @@ export function createWorld(canvas, obstacles) {
         "#342e24",
       );
       leg.rotation.x = side * 0.5;
+      legs.push(leg);
     }
   }
   const birdParts = new THREE.Group();
@@ -229,11 +230,31 @@ export function createWorld(canvas, obstacles) {
   fly.add(birdParts);
   block(birdParts, 0.48, 0.34, 0, 0.22, 0.12, 0.13, "#f1b83b");
   block(birdParts, -0.5, 0.34, 0, 0.32, 0.11, 0.12, "#4e9b57");
+  for (const side of [-1, 1]) {
+    const wing = block(birdParts, -0.03, 0.38, side * 0.32, 0.48, 0.08, 0.38, "#267f48");
+    wing.rotation.y = side * 0.18;
+    const tail = block(birdParts, -0.52, 0.35, side * 0.12, 0.4, 0.07, 0.12, "#2b65a8");
+    tail.rotation.y = side * 0.22;
+  }
+  const sparrowParts = new THREE.Group();
+  sparrowParts.visible = false;
+  fly.add(sparrowParts);
+  block(sparrowParts, 0.47, 0.34, 0, 0.18, 0.09, 0.1, "#d6a35a");
+  block(sparrowParts, -0.46, 0.36, 0, 0.38, 0.08, 0.12, "#5f4634");
+  for (const side of [-1, 1]) {
+    const wing = block(sparrowParts, -0.05, 0.36, side * 0.3, 0.44, 0.07, 0.34, "#795b43");
+    wing.rotation.y = side * 0.16;
+  }
   const jetParts = new THREE.Group();
   jetParts.visible = false;
   fly.add(jetParts);
   block(jetParts, 0.5, 0.3, 0, 0.38, 0.1, 0.12, "#c7d1d8");
   block(jetParts, -0.38, 0.48, 0, 0.18, 0.3, 0.08, "#596975");
+  for (const side of [-1, 1]) {
+    const jetWing = block(jetParts, -0.05, 0.3, side * 0.42, 0.55, 0.07, 0.72, "#7f929e");
+    jetWing.rotation.y = side * 0.3;
+    block(jetParts, -0.55, 0.3, side * 0.16, 0.2, 0.14, 0.14, "#ff754a");
+  }
   const beeParts = new THREE.Group();
   beeParts.visible = false;
   fly.add(beeParts);
@@ -247,6 +268,21 @@ export function createWorld(canvas, obstacles) {
     const antenna = block(beeParts, 0.61, 0.52, side * 0.14, 0.25, 0.035, 0.035, "#352d22");
     antenna.rotation.z = -0.45;
   }
+  const ladybugParts = new THREE.Group();
+  ladybugParts.visible = false;
+  fly.add(ladybugParts);
+  block(ladybugParts, -0.05, 0.54, -0.18, 0.62, 0.16, 0.34, "#e3342f");
+  block(ladybugParts, -0.05, 0.54, 0.18, 0.62, 0.16, 0.34, "#e3342f");
+  block(ladybugParts, 0.37, 0.45, 0, 0.3, 0.25, 0.45, "#1e2221");
+  for (const x of [-0.3, 0.08]) for (const z of [-0.23, 0.23]) block(ladybugParts, x, 0.72, z, 0.11, 0.05, 0.11, "#151918");
+  const fireflyParts = new THREE.Group();
+  fireflyParts.visible = false;
+  fly.add(fireflyParts);
+  block(fireflyParts, -0.42, 0.31, 0, 0.35, 0.3, 0.34, "#d9ff59");
+  block(fireflyParts, -0.14, 0.31, 0, 0.16, 0.32, 0.35, "#182b24");
+  block(fireflyParts, 0.14, 0.31, 0, 0.18, 0.34, 0.37, "#365c43");
+  const glow = new THREE.PointLight("#b9ff55", 1.8, 3);
+  glow.position.set(-0.48, 0.42, 0); fireflyParts.add(glow);
   const markerGeometry = new THREE.RingGeometry(0.38, 0.42, 32);
   const marker = new THREE.Mesh(
     markerGeometry,
@@ -366,12 +402,20 @@ export function createWorld(canvas, obstacles) {
       const palette = palettes[style] || palettes.default;
       fly.scale.setScalar(style === "default" ? 1 : 1.15);
       flyBody.forEach((part,index)=>{part.material=part.material.clone();part.material.color.set(palette[index]);part.material.emissive?.set(style==="firefly"&&index===2?"#78ff45":"#000000");part.material.emissiveIntensity=style==="firefly"&&index===2?1.4:0;});
-      birdParts.visible = style === "parrot" || style === "sparrow";
+      birdParts.visible = style === "parrot";
+      sparrowParts.visible = style === "sparrow";
       jetParts.visible = style === "jet";
       beeParts.visible = style === "bee";
-      flyBody.forEach(part => { part.visible = style !== "bee"; });
+      ladybugParts.visible = style === "ladybug";
+      fireflyParts.visible = style === "firefly";
+      const customBody = ["bee", "ladybug", "firefly"].includes(style);
+      flyBody.forEach(part => { part.visible = !customBody; });
       const wingColor = palette[4];
-      wings.forEach(pivot => pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); }));
+      wings.forEach(pivot => {
+        pivot.visible = !["parrot", "sparrow", "jet", "ladybug"].includes(style);
+        pivot.traverse(obj => { if (obj.material?.color) obj.material.color.set(wingColor); });
+      });
+      legs.forEach(leg => { leg.visible = !["parrot", "sparrow", "jet"].includes(style); });
     },
     setExpansion(level = 0) {
       const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
