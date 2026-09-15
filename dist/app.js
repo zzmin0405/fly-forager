@@ -3,8 +3,8 @@ import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
   neuro = $("neural").getContext("2d");
-const W = 1000,
-  H = 660,
+const BASE_W = 1000,
+  BASE_H = 660,
   obstacles = [
     { x: 330, y: 230, r: 48 },
     { x: 630, y: 400, r: 62 },
@@ -49,21 +49,28 @@ $("sensors").innerHTML = [
       `<div class="sensor"><span>${s}</span><div class="track"><i id="bar${i}"></i></div><b id="val${i}">0</b></div>`,
   )
   .join("");
+function arenaBounds(inset = 25) {
+  const scale = 1 + worldLevel * 0.09;
+  return { minX: BASE_W / 2 - (BASE_W / 2 - inset) * scale, maxX: BASE_W / 2 + (BASE_W / 2 - inset) * scale, minY: BASE_H / 2 - (BASE_H / 2 - inset) * scale, maxY: BASE_H / 2 + (BASE_H / 2 - inset) * scale };
+}
 function free(x, y) {
+  const { minX, maxX, minY, maxY } = arenaBounds();
   return (
-    x > 25 &&
-    x < W - 25 &&
-    y > 25 &&
-    y < H - 25 &&
+    x > minX && x < maxX && y > minY && y < maxY &&
     obstacles.every((o) => Math.hypot(x - o.x, y - o.y) > o.r + 22)
   );
 }
 function addFood(x, y) {
-  if (foods.length >= 100) return;
+  if (foods.length >= 100 + worldLevel * 50) return;
   if (x === undefined) {
+    const scale = 1 + worldLevel * 0.09;
+    const minX = BASE_W / 2 - (BASE_W / 2 - 35) * scale;
+    const maxX = BASE_W / 2 + (BASE_W / 2 - 35) * scale;
+    const minY = BASE_H / 2 - (BASE_H / 2 - 35) * scale;
+    const maxY = BASE_H / 2 + (BASE_H / 2 - 35) * scale;
     for (let i = 0; i < 100; i++) {
-      x = 35 + Math.random() * (W - 70);
-      y = 35 + Math.random() * (H - 70);
+      x = minX + Math.random() * (maxX - minX);
+      y = minY + Math.random() * (maxY - minY);
       if (free(x, y)) break;
     }
   }
@@ -71,7 +78,7 @@ function addFood(x, y) {
 }
 for (let i = 0; i < 9; i++) addFood();
 setInterval(() => {
-  if (ready && !paused && foods.length < 100) addFood();
+  if (ready && !paused) for (let i = 0; i < 1 + worldLevel; i++) addFood();
 }, 10000);
 let view;
 try {
@@ -162,12 +169,13 @@ function move(dt) {
     previousPosition = { x: bot.x, y: bot.y };
   } else {
     energy -= dt * 4;
+    const bounds = arenaBounds(42);
     // 경계에 비스듬히 붙으면 같은 벽을 계속 향할 수 있으므로 안쪽 법선으로 유도합니다.
     let escapeAngle;
-    if (bot.x < 42) escapeAngle = 0;
-    else if (bot.x > W - 42) escapeAngle = Math.PI;
-    else if (bot.y < 42) escapeAngle = Math.PI / 2;
-    else if (bot.y > H - 42) escapeAngle = -Math.PI / 2;
+    if (bot.x < bounds.minX) escapeAngle = 0;
+    else if (bot.x > bounds.maxX) escapeAngle = Math.PI;
+    else if (bot.y < bounds.minY) escapeAngle = Math.PI / 2;
+    else if (bot.y > bounds.maxY) escapeAngle = -Math.PI / 2;
     else {
       const hit = obstacles.reduce((best, o) => {
         const distance = Math.hypot(bot.x - o.x, bot.y - o.y);
@@ -178,10 +186,9 @@ function move(dt) {
     // 각도 래핑을 고려한 최소 회전으로 충돌면에서 부드럽게 빠져나갑니다.
     turnToward(escapeAngle, Math.min(1.1, dt * 4.2));
     // 경계 접촉 시 아주 조금씩 안쪽으로 밀어 다음 충돌 판정을 탈출시킵니다.
-    if (bot.x < 30) bot.x = 30;
-    if (bot.x > W - 30) bot.x = W - 30;
-    if (bot.y < 30) bot.y = 30;
-    if (bot.y > H - 30) bot.y = H - 30;
+    const inner = arenaBounds(30);
+    bot.x = Math.max(inner.minX, Math.min(inner.maxX, bot.x));
+    bot.y = Math.max(inner.minY, Math.min(inner.maxY, bot.y));
     stuckTime += dt;
   }
   if (stuckTime > 1.2) {
@@ -200,11 +207,6 @@ function move(dt) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
   score++;
-      const nextLevel = Math.min(3, Math.floor(score / 100));
-      if (nextLevel !== worldLevel) {
-        worldLevel = nextLevel;
-        view?.setExpansion(worldLevel);
-      }
       energy = Math.min(100, energy + 15);
       addFood();
     }
@@ -303,6 +305,7 @@ $("expand-farm").onclick = () => {
   score -= 100;
   worldLevel += 1;
   view?.setExpansion(worldLevel);
+  for (let i = 0; i < 15 * worldLevel; i++) addFood();
   $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";
 };
 $("reset").onclick = () => {
@@ -427,7 +430,7 @@ if (document.modelContext?.registerTool) {
           !free(input.x, input.y)
         )
           throw new Error("빈 경기장 좌표가 필요합니다");
-        if (foods.length >= 24) throw new Error("먹이는 최대 24개입니다");
+        if (foods.length >= 100 + worldLevel * 50) throw new Error(`먹이는 현재 최대 ${100 + worldLevel * 50}개입니다`);
         addFood(input.x, input.y);
         draw();
         return { foodCount: foods.length };
