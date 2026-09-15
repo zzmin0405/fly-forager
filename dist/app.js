@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=expansion-decor-1";
+import { createWorld } from "./world.js?v=expansion-visible-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -52,7 +52,7 @@ $("sensors").innerHTML = [
   )
   .join("");
 function arenaBounds(inset = 25) {
-  const scale = 1 + worldLevel * 0.2;
+  const scale = 1 + worldLevel * 0.35;
   return { minX: BASE_W / 2 - (BASE_W / 2 - inset) * scale, maxX: BASE_W / 2 + (BASE_W / 2 - inset) * scale, minY: BASE_H / 2 - (BASE_H / 2 - inset) * scale, maxY: BASE_H / 2 + (BASE_H / 2 - inset) * scale };
 }
 function free(x, y) {
@@ -65,7 +65,7 @@ function free(x, y) {
 function addFood(x, y) {
   if (foods.length >= 100 + worldLevel * 50) return;
   if (x === undefined) {
-    const scale = 1 + worldLevel * 0.2;
+    const scale = 1 + worldLevel * 0.35;
     const minX = BASE_W / 2 - (BASE_W / 2 - 35) * scale;
     const maxX = BASE_W / 2 + (BASE_W / 2 - 35) * scale;
     const minY = BASE_H / 2 - (BASE_H / 2 - 35) * scale;
