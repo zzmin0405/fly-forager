@@ -20,6 +20,7 @@ let bot = { x: 130, y: 330, a: 0 },
   score = 0,
   energy = 100,
   elapsed = 0,
+  simSpeed = 1,
   outputs = [0, 0, 0, 0],
   groups = [],
   last = 0,
@@ -161,7 +162,7 @@ function frame(t) {
   const dt = Math.min(0.04, (t - last) / 1000 || 0);
   last = t;
   if (ready && !paused) {
-    move(dt);
+    move(dt * simSpeed);
     if (!busy && t - stepAt > 100) {
       busy = true;
       stepAt = t;
@@ -216,6 +217,10 @@ $("pause").onclick = () => {
   $("pause").textContent = paused ? "계속하기" : "일시 정지";
     $("status").textContent = paused ? "일시 정지" : "신경망이 플레이 중 · 무한 탐험";
 };
+$("speed").onclick = () => {
+  simSpeed = simSpeed === 1 ? 2 : simSpeed === 2 ? 4 : 1;
+  $("speed").textContent = `속도 ${simSpeed}×`;
+};
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
   foods = [];
@@ -224,6 +229,7 @@ $("reset").onclick = () => {
   score = 0;
   energy = 100;
   elapsed = 0;
+  simSpeed = 1;
   outputs = [0, 0, 0, 0];
   wander = 0;
   stuckTime = 0;
@@ -233,6 +239,7 @@ $("reset").onclick = () => {
   neuronView.reset();
   $("pause").disabled = false;
   $("pause").textContent = "일시 정지";
+  $("speed").textContent = "속도 1×";
   $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
 };
 $("loading").hidden = true;
@@ -251,7 +258,7 @@ async function boot() {
         $("nodes").textContent = d.nodes.toLocaleString();
         $("edges").textContent = d.edges.toLocaleString();
         $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
-        for (const id of ["food", "pause", "reset"]) $(id).disabled = false;
+        for (const id of ["food", "pause", "reset", "speed"]) $(id).disabled = false;
       } else if (d.type === "step") {
         neuronView.update(d.neuronState);
         busy = false;
@@ -276,7 +283,7 @@ function fail(message) {
   $("load-note").textContent =
     message + " · 페이지를 새로고침해 다시 시도하세요.";
   $("loading").querySelector("progress").hidden = true;
-  for (const id of ["food", "pause", "reset"]) $(id).disabled = true;
+  for (const id of ["food", "pause", "reset", "speed"]) $(id).disabled = true;
 }
 if (view) boot();
 // 화면과 같은 상태를 사용하는 선택적 WebMCP 인터페이스.
