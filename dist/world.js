@@ -419,9 +419,13 @@ export function createWorld(canvas, obstacles) {
       pathGeometry.setDrawRange(0, trail.length);
       if (firstPerson) {
         const direction = new THREE.Vector3(Math.cos(bot.a), 0, Math.sin(bot.a));
-        const eye = fly.position.clone().add(new THREE.Vector3(0, 1.05, 0));
+        // 배틀로얄식 어깨 너머 카메라: 캐릭터 뒤쪽 위에서 진행 방향을 바라본다.
+        const eye = fly.position
+          .clone()
+          .addScaledVector(direction, -5.2)
+          .add(new THREE.Vector3(0, 3.7, 0));
         camera.position.lerp(eye, 0.2);
-        const look = eye.clone().add(direction.multiplyScalar(8));
+        const look = fly.position.clone().add(new THREE.Vector3(0, 0.55, 0)).add(direction.multiplyScalar(3.5));
         camera.lookAt(look);
       } else if (following) {
         const old = controls.target.clone();
