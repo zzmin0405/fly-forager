@@ -29,7 +29,10 @@ let bot = { x: 130, y: 330, a: 0 },
   wander = 0,
   stuckTime = 0,
   previousPosition = { x: 130, y: 330 },
-  worldLevel = 0;
+  worldLevel = 0,
+  targetStall = 0,
+  lastTargetDistance = Infinity,
+  escapeTimer = 0;
 let flyStyle = 0;
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
@@ -124,6 +127,18 @@ function move(dt) {
     feedingApproach = nearest.d < 72;
     if (feedingApproach) turn = delta * 0.82;
     else turn += Math.max(-1.2, Math.min(1.2, delta)) * Math.exp(-nearest.d / 180) * 1.05;
+    if (nearest.d < lastTargetDistance - 0.35) targetStall = 0;
+    else targetStall += dt;
+    lastTargetDistance = nearest.d;
+    if (targetStall > 2.2) {
+      // 이동은 하지만 목표 거리만 줄지 않는 공전 상태를 탈출합니다.
+      escapeTimer = 1.8;
+      targetStall = 0;
+    }
+  }
+  if (escapeTimer > 0) {
+    escapeTimer -= dt;
+    turn = (dl - dr) * 2.2 + wander * 0.9 + (Math.random() - 0.5) * 0.7;
   }
   bot.a += Math.max(-1.25, Math.min(1.25, turn)) * dt;
   const speed = 34 + Math.min(42, (fl + fr) * 28),
@@ -268,6 +283,9 @@ $("reset").onclick = () => {
   stuckTime = 0;
   previousPosition = { x: 130, y: 330 };
   worldLevel = 0;
+  targetStall = 0;
+  lastTargetDistance = Infinity;
+  escapeTimer = 0;
   flyStyle = 0;
   view?.setExpansion(0);
   view?.customize(0);
