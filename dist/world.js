@@ -186,6 +186,12 @@ export function createWorld(canvas, obstacles) {
     { x: 190, y: 180, r: 32, tree: true }, { x: 820, y: 510, r: 35 },
     { x: 210, y: 520, r: 30 }, { x: 830, y: 185, r: 34, tree: true },
     { x: 500, y: 120, r: 32, tree: true }, { x: 500, y: 555, r: 34 },
+    { x: 120, y: 330, r: 30 }, { x: 880, y: 330, r: 32, tree: true },
+    { x: 350, y: 135, r: 28 }, { x: 680, y: 525, r: 31 },
+    { x: 120, y: 520, r: 29, tree: true }, { x: 875, y: 145, r: 30 },
+    { x: 300, y: 570, r: 30 }, { x: 720, y: 110, r: 28, tree: true },
+    { x: 150, y: 160, r: 30 }, { x: 850, y: 540, r: 32 },
+    { x: 420, y: 100, r: 28, tree: true }, { x: 590, y: 570, r: 30 },
   ];
   function rebuildExpansionDecor(level = 0) {
     expansionDecor.clear();
@@ -203,7 +209,7 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, 0, .4, halfZ, width * .8, .11, .1, "#dfc08b");
     block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
-    const count = Math.min(expansionObstacles.length, level * 2);
+    const count = Math.min(expansionObstacles.length, level * 6);
     for (let i = 0; i < count; i++) {
       const o = expansionObstacles[i], x = (o.x - 500) / 50, z = (o.y - 330) / 50, r = o.r / 50;
       if (o.tree) {

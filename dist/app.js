@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-expansion-5";
+import { createWorld } from "./world.js?v=map-expansion-6";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -332,7 +332,8 @@ $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
   worldLevel += 1;
-  obstacles.push(randomObstacle(), randomObstacle());
+  // 면적 증가에 맞춰 단계당 장애물을 5개 추가한다.
+  for (let i = 0; i < 5; i++) obstacles.push(randomObstacle());
   view?.setExpansion(worldLevel);
   for (let i = 0; i < 15 * worldLevel; i++) addFood();
   $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";
