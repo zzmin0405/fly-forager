@@ -265,7 +265,11 @@ export function createWorld(canvas, obstacles) {
     plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   let following = false,
     firstPerson = false,
-    cameraAnimation;
+    cameraAnimation,
+    targetAnimation;
+  let cameraTime = performance.now();
+  const chaseLook = new THREE.Vector3();
+  let chaseEntering = false;
   function home(top = false) {
     firstPerson = false;
     controls.enabled = true;
@@ -273,6 +277,9 @@ export function createWorld(canvas, obstacles) {
     following = false;
     document.getElementById("follow").setAttribute("aria-pressed", "false");
     cameraAnimation?.cancel();
+    targetAnimation?.cancel();
+    camera.fov = 38;
+    camera.updateProjectionMatrix();
     const target = top ? { x: 0, y: 34, z: 0.1 } : { x: 19, y: 22, z: 25 };
     if (reduced) {
       camera.position.set(target.x, target.y, target.z);
@@ -283,7 +290,7 @@ export function createWorld(canvas, obstacles) {
         duration: 850,
         ease: "inOutCubic",
       });
-      animate(controls.target, {
+      targetAnimation = animate(controls.target, {
         x: 0,
         y: -0.5,
         z: 0,
@@ -313,16 +320,22 @@ export function createWorld(canvas, obstacles) {
   return {
     home,
     firstPerson() {
-      firstPerson = !firstPerson;
-      controls.enabled = !firstPerson;
-      document.getElementById("first-person").setAttribute("aria-pressed", String(firstPerson));
-      return firstPerson;
+      if (firstPerson) { home(); return false; }
+      cameraAnimation?.cancel();
+      targetAnimation?.cancel();
+      firstPerson = true;
+      following = false;
+      chaseEntering = true;
+      controls.enabled = false;
+      camera.fov = 55;
+      camera.updateProjectionMatrix();
+      document.getElementById("follow").setAttribute("aria-pressed", "false");
+      document.getElementById("first-person").setAttribute("aria-pressed", "true");
+      return true;
     },
     follow() {
       if (firstPerson) {
-        firstPerson = false;
-        controls.enabled = true;
-        document.getElementById("first-person").setAttribute("aria-pressed", "false");
+        home();
       }
       following = !following;
       document
@@ -385,6 +398,9 @@ export function createWorld(canvas, obstacles) {
       });
     },
     render(bot, foods, trail, time, playing) {
+      const now = performance.now();
+      const cameraDt = Math.min(0.1, (now - cameraTime) / 1000);
+      cameraTime = now;
       fly.position.set(
         (bot.x - 500) / 50,
         0.025 + (playing ? Math.sin(time * 12) * 0.025 : 0),
@@ -420,13 +436,17 @@ export function createWorld(canvas, obstacles) {
       if (firstPerson) {
         const direction = new THREE.Vector3(Math.cos(bot.a), 0, Math.sin(bot.a));
         // 배틀로얄식 어깨 너머 카메라: 캐릭터 뒤쪽 위에서 진행 방향을 바라본다.
-        const eye = fly.position
-          .clone()
-          .addScaledVector(direction, -5.2)
-          .add(new THREE.Vector3(0, 3.7, 0));
-        camera.position.lerp(eye, 0.2);
-        const look = fly.position.clone().add(new THREE.Vector3(0, 0.55, 0)).add(direction.multiplyScalar(3.5));
-        camera.lookAt(look);
+        const anchor = new THREE.Vector3(fly.position.x, 0, fly.position.z);
+        const shoulder = new THREE.Vector3(-direction.z, 0, direction.x);
+        const eye = anchor.clone().addScaledVector(direction, -2.8)
+          .addScaledVector(shoulder, 0.5).add(new THREE.Vector3(0, 1.65, 0));
+        const look = anchor.clone().add(new THREE.Vector3(0, 0.38, 0));
+        const blend = reduced || chaseEntering ? 1 : 1 - Math.exp(-8 * cameraDt);
+        camera.position.lerp(eye, blend);
+        chaseLook.copy(look);
+        camera.lookAt(chaseLook);
+        controls.target.copy(chaseLook);
+        chaseEntering = false;
       } else if (following) {
         const old = controls.target.clone();
         controls.target.lerp(
@@ -435,7 +455,8 @@ export function createWorld(canvas, obstacles) {
         );
         camera.position.add(controls.target.clone().sub(old));
       }
-      controls.update();
+      // enabled=false는 입력만 막는다. update()도 생략해야 추적 시선이 유지된다.
+      if (!firstPerson) controls.update();
       renderer.render(scene, camera);
     },
   };
