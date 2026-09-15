@@ -28,7 +28,8 @@ let bot = { x: 130, y: 330, a: 0 },
   worker,
   wander = 0,
   stuckTime = 0,
-  previousPosition = { x: 130, y: 330 };
+  previousPosition = { x: 130, y: 330 },
+  worldLevel = 0;
 const neuronView = createNeuronView(index => worker?.postMessage({type:"inspect",index}));
 $("sensors").innerHTML = [
   "먹이 · 왼쪽",
@@ -158,7 +159,12 @@ function move(dt) {
     if (Math.hypot(foods[i].x - bot.x, foods[i].y - bot.y) < 21) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
-      score++;
+  score++;
+      const nextLevel = Math.min(3, Math.floor(score / 8));
+      if (nextLevel !== worldLevel) {
+        worldLevel = nextLevel;
+        view?.setExpansion(worldLevel);
+      }
       energy = Math.min(100, energy + 15);
       addFood();
     }
@@ -247,6 +253,8 @@ $("reset").onclick = () => {
   wander = 0;
   stuckTime = 0;
   previousPosition = { x: 130, y: 330 };
+  worldLevel = 0;
+  view?.setExpansion(0);
   paused = false;
   worker.postMessage({ type: "reset" });
   neuronView.reset();

@@ -66,6 +66,9 @@ export function createWorld(canvas, obstacles) {
   }
   const world = new THREE.Group();
   scene.add(world);
+  let expansionScale = 1;
+  const gameX = value => (value - 500) / 50 * expansionScale;
+  const gameZ = value => (value - 330) / 50 * expansionScale;
   const noise = (x, z) => {
     const t = Math.sin(x * 127.1 + z * 311.7) * 43758.5453;
     return t - Math.floor(t);
@@ -318,6 +321,13 @@ export function createWorld(canvas, obstacles) {
     );
   });
   return {
+    setExpansion(level = 0) {
+      const scale = 1 + Math.min(3, Math.max(0, level)) * 0.09;
+      expansionScale = scale;
+      world.scale.set(scale, 1, scale);
+      controls.maxDistance = 58 + Math.min(3, level) * 7;
+      controls.target.y = -0.5;
+    },
     home,
     firstPerson() {
       if (firstPerson) { home(); return false; }
@@ -354,13 +364,13 @@ export function createWorld(canvas, obstacles) {
       );
       const point = new THREE.Vector3();
       if (!raycaster.ray.intersectPlane(plane, point)) return null;
-      return { x: point.x * 50 + 500, y: point.z * 50 + 330 };
+      return { x: point.x / expansionScale * 50 + 500, y: point.z / expansionScale * 50 + 330 };
     },
     collect(food) {
       const origin = new THREE.Vector3(
-        (food.x - 500) / 50,
+        gameX(food.x),
         0.45,
-        (food.y - 330) / 50,
+        gameZ(food.y),
       );
       if (reduced) return;
       for (let i = 0; i < 8; i++) {
@@ -402,7 +412,7 @@ export function createWorld(canvas, obstacles) {
       const cameraDt = Math.min(0.1, (now - cameraTime) / 1000);
       cameraTime = now;
       fly.position.set(
-        (bot.x - 500) / 50,
+        gameX(bot.x),
         0.025 + (playing ? Math.sin(time * 12) * 0.025 : 0),
         (bot.y - 330) / 50,
       );
@@ -420,16 +430,16 @@ export function createWorld(canvas, obstacles) {
       for (const food of foods) {
         const mesh = foodMeshes.get(food) || createFood(food);
         mesh.position.set(
-          (food.x - 500) / 50,
+          gameX(food.x),
           0.4 + (reduced ? 0 : Math.sin(time * 2 + food.x) * 0.07),
-          (food.y - 330) / 50,
+          gameZ(food.y),
         );
         mesh.rotation.y = time * 0.45;
       }
       for (let i = 0; i < trail.length; i++) {
-        pathPositions[i * 3] = (trail[i].x - 500) / 50;
+        pathPositions[i * 3] = gameX(trail[i].x);
         pathPositions[i * 3 + 1] = 0.025;
-        pathPositions[i * 3 + 2] = (trail[i].y - 330) / 50;
+        pathPositions[i * 3 + 2] = gameZ(trail[i].y);
       }
       pathGeometry.attributes.position.needsUpdate = true;
       pathGeometry.setDrawRange(0, trail.length);
