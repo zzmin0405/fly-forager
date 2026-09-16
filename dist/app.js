@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=harvest-huts-1";
+import { createWorld } from "./world.js?v=harvest-ten-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -120,8 +120,8 @@ function draw() {
   $("upgrade-food").disabled = !ready || foodTier===3 || score<(foodTier===1?1000:3000);
   $("upgrade-food").textContent = foodTier===3 ? "먹이 3단계 · 최대 가치 3" : `먹이 ${foodTier+1}단계 업그레이드 (${foodTier===1?"1,000":"3,000"})`;
   $("food-tier").textContent = `먹이 ${foodTier}단계 · 획득 가치 ${foodTier}`;
-  $("buy-fly").disabled = !ready || score < 500 || companions.length >= 4;
-  $("buy-fly").textContent = companions.length >= 4 ? "초파리 최대 5마리" : "초파리 추가 (500)";
+  $("buy-fly").disabled = !ready || score < 500 || companions.length >= (farmStage ? 9 : 4);
+  $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
   $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
   $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
@@ -347,7 +347,7 @@ $("upgrade-food").onclick=()=>{
   score-=cost; foodTier++; view?.setFoodTier(foodTier);
 };
 $("buy-fly").onclick=()=>{
-  if(!ready || score<500 || companions.length>=4) return;
+  if(!ready || score<500 || companions.length>=(farmStage ? 9 : 4)) return;
   const fly=emptySpawn(); if(!fly) return;
   score-=500; companions.push(fly);
 };

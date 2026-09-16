@@ -13,7 +13,7 @@ run('score=6000; $("next-farm").onclick()');assert.equal(run('score'),6000);
 run('foods=[{x:companions[0].x,y:companions[0].y}];moveCompanions(0)');assert.equal(run('score'),6001);
 console.log('구매 잔액, 안전 생성, 밀밭 전환, 중복 결제 방지, 공동 수집 검증 통과');
 
-run('score=10000; for(let i=0;i<10;i++) $("buy-fly").onclick()');
+run('farmStage=0;score=10000; for(let i=0;i<10;i++) $("buy-fly").onclick()');
 assert.equal(run('companions.length'),4);
 assert.equal(run('score'),8500);
 console.log('최대 5마리 제한 및 초과 구매 시 잔액 보존 검증 통과');
@@ -40,3 +40,8 @@ run('$("upgrade-food").onclick()');assert.equal(run('foodTier'),3);assert.equal(
 run('score=6000;$("upgrade-food").onclick()');assert.equal(run('score'),6000);
 run('companions=[{x:500,y:330,a:0,escape:0}];foods=[{x:500,y:330}];moveCompanions(0)');assert.equal(run('score'),6003);
 console.log('먹이 단계별 가격, 최대 단계, 가치 3 지급 검증 통과');
+
+run('farmStage=1;worldLevel=3;obstacles.splice(0);companions=[];score=10000;for(let i=0;i<15;i++) $("buy-fly").onclick()');
+assert.equal(run('companions.length'),9);
+assert.equal(run('score'),5500);
+console.log('밀밭 10마리 한도 및 초과 구매 차감 방지 검증 통과');
