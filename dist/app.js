@@ -143,15 +143,27 @@ function draw() {
     neuro.fill();
   }
 }
+function odorStrength(distance) {
+  // 점 냄새원이 확산되며 희석되는 형태: 근거리 역제곱 감쇠 + 원거리 확산 손실.
+  return Math.exp(-distance / 360) / (1 + Math.pow(distance / 72, 2));
+}
 function sense() {
   let s = [0, 0, 0, 0];
   for (const f of foods) {
-    let d = Math.hypot(f.x - bot.x, f.y - bot.y),
-      a = Math.atan2(f.y - bot.y, f.x - bot.x) - bot.a;
-    const strength = Math.exp(-d / 190);
-    s[0] += strength * (0.5 - 0.45 * Math.sin(a));
-    s[1] += strength * (0.5 + 0.45 * Math.sin(a));
+    const forwardX = Math.cos(bot.a), forwardY = Math.sin(bot.a);
+    const sideX = -forwardY, sideY = forwardX;
+    for (let side = 0; side < 2; side++) {
+      const sign = side ? 1 : -1;
+      // 머리 앞쪽 좌우 더듬이에서 각각 농도를 측정한다.
+      const antennaX = bot.x + forwardX * 10 + sideX * sign * 7;
+      const antennaY = bot.y + forwardY * 10 + sideY * sign * 7;
+      const distance = Math.hypot(f.x - antennaX, f.y - antennaY);
+      s[side] += odorStrength(distance);
+    }
   }
+  // 여러 먹이의 냄새는 합쳐지되 수용체 포화처럼 1에 가까워질수록 증가폭이 줄어든다.
+  s[0] = 1 - Math.exp(-s[0]);
+  s[1] = 1 - Math.exp(-s[1]);
   for (let side = 0; side < 2; side++) {
     let a = bot.a + (side ? 1 : -1) * 0.55;
     for (let d = 15; d <= 130; d += 10) {
