@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=escape-corridor-1";
+import { createWorld } from "./world.js?v=flock-separation-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -292,10 +292,32 @@ function move(dt) {
   $("time").textContent =
     `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(Math.floor(elapsed % 60)).padStart(2, "0")}`;
 }
+function separateFlies(dt) {
+  const flies=[bot,...companions];
+  for(let i=0;i<flies.length;i++) for(let j=i+1;j<flies.length;j++) {
+    const a=flies[i],b=flies[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);
+    if(d>=65) continue;
+    const angle=d>0.001 ? Math.atan2(dy,dx) : (i*2.4+j*1.7);
+    const step=Math.min((65-d)/2,90*dt);
+    for(const [f,sign] of [[a,-1],[b,1]]) {
+      // 장애물과 울타리를 통과하지 않는 방향으로만 분리한다.
+      for(const offset of [0,.65,-.65,1.3,-1.3]) {
+        const x=f.x+Math.cos(angle+offset)*step*sign,y=f.y+Math.sin(angle+offset)*step*sign;
+        if(free(x,y)&&pathFree(f.x,f.y,x,y)) {f.x=x;f.y=y;break;}
+      }
+    }
+  }
+}
 function moveCompanions(dt) {
+  const claimed=new Set();
+  const mainTarget=foods.reduce((a,b)=>!a||Math.hypot(b.x-bot.x,b.y-bot.y)<Math.hypot(a.x-bot.x,a.y-bot.y)?b:a,null);
+  if(mainTarget) claimed.add(mainTarget);
   for (const fly of companions) {
     if(recoverMovement(fly,dt)) continue;
-    const target = foods.reduce((a, b) => !a || Math.hypot(b.x-fly.x,b.y-fly.y) < Math.hypot(a.x-fly.x,a.y-fly.y) ? b : a, null);
+    const target = foods.filter(f=>!claimed.has(f)).reduce((a, b) => !a || Math.hypot(b.x-fly.x,b.y-fly.y) < Math.hypot(a.x-fly.x,a.y-fly.y) ? b : a, null);
+    if(target) claimed.add(target);
+    fly.target=target;
+    if(!target) fly.a+=Math.sin(elapsed*.8+companions.indexOf(fly)*2.4)*dt;
     if (target && fly.escape <= 0) {
       const angle = Math.atan2(target.y-fly.y,target.x-fly.x);
       fly.a += Math.max(-dt*3, Math.min(dt*3, Math.atan2(Math.sin(angle-fly.a),Math.cos(angle-fly.a))));
@@ -312,7 +334,7 @@ function emptySpawn() {
   const b=arenaBounds(60);
   for(let i=0;i<1000;i++) {
     const x=b.minX+Math.random()*(b.maxX-b.minX), y=b.minY+Math.random()*(b.maxY-b.minY);
-    if(free(x,y)) return {x,y,a:Math.random()*Math.PI*2,escape:0};
+    if(free(x,y) && [bot,...companions].every(f=>Math.hypot(f.x-x,f.y-y)>80)) return {x,y,a:Math.random()*Math.PI*2,escape:0};
   }
   return null;
 }
@@ -333,6 +355,7 @@ function frame(t) {
   if (ready && !paused) {
     move(dt * simSpeed);
     moveCompanions(dt * simSpeed);
+    separateFlies(dt * simSpeed);
     if (!busy && t - stepAt > 100) {
       busy = true;
       stepAt = t;

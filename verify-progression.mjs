@@ -28,3 +28,8 @@ assert.equal(run('free(companions[0].x,companions[0].y)'),true);
 run('worldLevel=3;randomizeObstacles(19)');
 assert.equal(run('obstacles.every(o=>{const b=arenaBounds();return o.x-o.r-b.minX>=95 && b.maxX-o.x-o.r>=95 && o.y-o.r-b.minY>=95 && b.maxY-o.y-o.r>=95})'),true);
 console.log('본체와 추가 초파리의 제자리 회전 탈출 검증 통과');
+run('worldLevel=0;obstacles.splice(0);bot={x:500,y:330,a:0};companions=[{x:500,y:330,a:0,escape:0},{x:500,y:330,a:0,escape:0}];for(let i=0;i<150;i++)separateFlies(.02)');
+assert.equal(run('[bot,...companions].every((f,i,all)=>all.every((g,j)=>i===j||Math.hypot(f.x-g.x,f.y-g.y)>60))'),true);
+run('foods=[{x:100,y:100},{x:800,y:100},{x:800,y:550}];moveCompanions(0)');
+assert.equal(run('companions[0].target !== companions[1].target'),true);
+console.log('완전 겹침 분리 및 개체별 먹이 목표 분배 검증 통과');
