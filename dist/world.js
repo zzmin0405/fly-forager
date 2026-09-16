@@ -192,7 +192,7 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     for (let i = 0; i < obstacles.length; i++) {
-      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50 * (farmStage===2 ? 2.35 : 1);
+      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50 * (farmStage===2 ? 1.35 : 1);
       const harvestType = ["cottage", "hay", "granary"][i%3];
       if (farmStage===2 && i%4===0) {
         block(expansionDecor,x,.8,z,r*1.8,.2,r*1.8,"#5c3b32");

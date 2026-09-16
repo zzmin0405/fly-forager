@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-area-1";
+import { createWorld } from "./world.js?v=orchard-spacing-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -363,6 +363,7 @@ $("next-farm").onclick=()=>{
   const cost=farmStage===0?5000:30000;
   if(!adminMode && (!ready || farmStage>=2 || score<cost)) return;
   if(farmStage>=2) return; if(!adminMode) score-=cost; farmStage++; trail=[];
+  if (farmStage === 2) randomizeObstacles(Math.min(14, 6 + worldLevel));
   view?.setFarm(farmStage,worldLevel);
 };
 function frame(t) {
