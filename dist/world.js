@@ -200,15 +200,16 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     for (let i = 0; i < obstacles.length; i++) {
-      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50 * (farmStage===2 ? 1.35 : 1);
+      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50 * (farmStage===2 ? .78 : 1);
       const harvestType = ["cottage", "hay", "granary"][i%3];
-      if (farmStage===2 && i%4===0) {
+      if (farmStage===2 && i%7===0) {
         block(expansionDecor,x,.8,z,r*1.8,.2,r*1.8,"#5c3b32");
         block(expansionDecor,x,.8,z,r*.5,1.6,r*.5,"#60412e");
-        block(expansionDecor,x,1.55,z,r*2.1,.35,r*2.1,"#477443");
+        block(expansionDecor,x,1.55,z,r*2.8,.35,r*2.8,"#b66a35");
+        block(expansionDecor,x,1.92,z,r*2.2,.28,r*2.2,"#d78637");
         continue;
       }
-      if (farmStage===2 && i%4===1) {
+      if (farmStage===2 && i%7===1) {
         block(expansionDecor,x,.45,z,r*2.4,.9,r*1.9,"#70627c");
         block(expansionDecor,x,.98,z,r*2.0,.15,r*1.6,"#927fa3");
         continue;
