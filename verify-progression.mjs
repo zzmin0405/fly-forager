@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import assert from 'node:assert/strict';
 const elements=new Map();const el=id=>elements.get(id)||elements.set(id,{disabled:true,style:{},getContext:()=>({}),addEventListener(){},querySelector:()=>({})}).get(id);
-const view={setFarm(){},setExpansion(){},collect(){}};
+const view={setFoodTier(){},setFarm(){},setExpansion(){},collect(){}};
 const context=vm.createContext({document:{getElementById:el,addEventListener(){}},localStorage:{getItem:()=>null},createNeuronView:()=>({reset(){}}),createWorld:()=>view,setInterval(){},requestAnimationFrame(){},fetch:()=>new Promise(()=>{}),console,Math});
 vm.runInContext(fs.readFileSync('dist/app.js','utf8').replace(/^import .*;$/gm,''),context);
 const run=s=>vm.runInContext(s,context);
@@ -33,3 +33,10 @@ assert.equal(run('[bot,...companions].every((f,i,all)=>all.every((g,j)=>i===j||M
 run('foods=[{x:100,y:100},{x:800,y:100},{x:800,y:550}];moveCompanions(0)');
 assert.equal(run('companions[0].target !== companions[1].target'),true);
 console.log('완전 겹침 분리 및 개체별 먹이 목표 분배 검증 통과');
+
+run('score=999;$("upgrade-food").onclick()'); assert.equal(run('foodTier'),1);
+run('score=4000;$("upgrade-food").onclick()'); assert.equal(run('foodTier'),2);assert.equal(run('score'),3000);
+run('$("upgrade-food").onclick()');assert.equal(run('foodTier'),3);assert.equal(run('score'),0);
+run('score=6000;$("upgrade-food").onclick()');assert.equal(run('score'),6000);
+run('companions=[{x:500,y:330,a:0,escape:0}];foods=[{x:500,y:330}];moveCompanions(0)');assert.equal(run('score'),6003);
+console.log('먹이 단계별 가격, 최대 단계, 가치 3 지급 검증 통과');

@@ -239,6 +239,7 @@ export function createWorld(canvas, obstacles) {
   marker.rotation.x = -Math.PI / 2;
   marker.position.y = 0.02;
   scene.add(marker);
+  let foodTier=1;
   const foodMeshes = new Map();
   function createFood(food) {
     const mesh = new THREE.Group();
@@ -247,6 +248,19 @@ export function createWorld(canvas, obstacles) {
     block(mesh, 0, 0.19, 0, 0.035, 0.12, 0.035, "#695531");
     const leaf = block(mesh, 0.06, 0.21, 0, 0.14, 0.04, 0.07, "#629a3f");
     leaf.rotation.z = 0.3;
+    if(foodTier>=2) {
+      mesh.clear();
+      // 잘 익은 붉은 열매, 3단계는 황금 열매 묶음.
+      const color=foodTier===2?"#dc5145":"#f5c542";
+      const count=foodTier===2?1:3;
+      for(let i=0;i<count;i++) {
+        const x=count===1?0:(i-1)*.22, y=i===1?.18:0;
+        block(mesh,x,y,0,.3,.28,.3,color);
+        block(mesh,x-.05,y+.15,0,.15,.08,.2,foodTier===2?"#f78469":"#ffe791");
+        block(mesh,x,y+.23,0,.04,.12,.04,"#795430");
+        block(mesh,x+.07,y+.25,0,.17,.04,.08,"#649542");
+      }
+    }
     scene.add(mesh);
     foodMeshes.set(food, mesh);
     if (!reduced) {
@@ -335,6 +349,11 @@ export function createWorld(canvas, obstacles) {
     chaseDistance = Math.max(1.4, Math.min(8, chaseDistance + event.deltaY * 0.006));
   }, { passive: false });
   return {
+    setFoodTier(tier) {
+      foodTier=tier;
+      for(const mesh of foodMeshes.values()) scene.remove(mesh);
+      foodMeshes.clear();
+    },
     setFarm(stage, level) {
       farmStage=stage;
       for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? (i%3 ? "#c9aa62" : "#b69753") : grassColors[i%5]));

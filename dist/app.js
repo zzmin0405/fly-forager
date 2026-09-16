@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=flock-separation-1";
+import { createWorld } from "./world.js?v=food-tier-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -35,7 +35,7 @@ let bot = { x: 130, y: 330, a: 0 },
   escapeTimer = 0,
   saccadeTimer = 0,
   saccadeTurn = 0;
-let companions = [], farmStage = 0;
+let companions = [], farmStage = 0, foodTier = 1;
 let flyStyle = "default";
 let ownedSkins;
 try { ownedSkins = new Set(JSON.parse(localStorage.getItem("flycraft-owned-skins") || '["default"]')); }
@@ -117,6 +117,9 @@ try {
 }
 function draw() {
   view?.render(bot, foods, trail, elapsed, ready && !paused, companions);
+  $("upgrade-food").disabled = !ready || foodTier===3 || score<(foodTier===1?1000:3000);
+  $("upgrade-food").textContent = foodTier===3 ? "먹이 3단계 · 최대 가치 3" : `먹이 ${foodTier+1}단계 업그레이드 (${foodTier===1?"1,000":"3,000"})`;
+  $("food-tier").textContent = `먹이 ${foodTier}단계 · 획득 가치 ${foodTier}`;
   $("buy-fly").disabled = !ready || score < 500 || companions.length >= 4;
   $("buy-fly").textContent = companions.length >= 4 ? "초파리 최대 5마리" : "초파리 추가 (500)";
   $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
@@ -278,7 +281,7 @@ function move(dt) {
     if (Math.hypot(food.x - nearX, food.y - nearY) < 36) {
       view?.collect(foods[i]);
       foods.splice(i, 1);
-  score++;
+  score += foodTier;
       energy = Math.min(100, energy + 15);
       addFood();
     }
@@ -327,7 +330,7 @@ function moveCompanions(dt) {
     if (free(x,y) && pathFree(fly.x,fly.y,x,y)) { fly.x=x; fly.y=y; }
     else { fly.a += 1.2; fly.escape=.7; }
     const i = foods.findIndex(f => Math.hypot(f.x-fly.x,f.y-fly.y)<36);
-    if (i>=0) { view?.collect(foods[i]); foods.splice(i,1); score++; addFood(); }
+    if (i>=0) { view?.collect(foods[i]); foods.splice(i,1); score += foodTier; addFood(); }
   }
 }
 function emptySpawn() {
@@ -338,6 +341,11 @@ function emptySpawn() {
   }
   return null;
 }
+$("upgrade-food").onclick=()=>{
+  const cost=foodTier===1?1000:3000;
+  if(!ready || foodTier>=3 || score<cost) return;
+  score-=cost; foodTier++; view?.setFoodTier(foodTier);
+};
 $("buy-fly").onclick=()=>{
   if(!ready || score<500 || companions.length>=4) return;
   const fly=emptySpawn(); if(!fly) return;
@@ -444,7 +452,7 @@ $("expand-farm").onclick = () => {
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
-  worldLevel = 0; companions = []; farmStage = 0;
+  worldLevel = 0; companions = []; farmStage = 0; foodTier=1; view?.setFoodTier(1);
   $("next-farm").textContent="다음 농장 · 수확한 밀밭 (5,000)";
   randomizeObstacles();
   view?.setFarm(0,0);
