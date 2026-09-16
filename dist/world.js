@@ -68,6 +68,16 @@ export function createWorld(canvas, obstacles) {
     parent.add(mesh);
     return mesh;
   }
+  function softenCloud(cloud) {
+    cloud.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material = o.material.clone();
+      o.material.transparent = true;
+      o.material.opacity = 0.42;
+      o.material.depthWrite = false;
+      o.castShadow = false;
+    });
+  }
   const world = new THREE.Group();
   scene.add(world);
   let expansionScale = 1;
@@ -157,9 +167,7 @@ export function createWorld(canvas, obstacles) {
     cloud.position.set(-22 + i * 9, 7 + (i % 3) * 1.8, -17 - (i % 2) * 8);
     block(cloud, 0, 0, 0, 4.5, 0.8, 1.5, "#f1fbf8");
     block(cloud, -0.7, 0.6, 0, 2.4, 0.6, 1.4, "#f1fbf8");
-    cloud.traverse((o) => {
-      o.castShadow = false;
-    });
+    softenCloud(cloud);
     scene.add(cloud);
     clouds.push(cloud);
   }
@@ -266,7 +274,7 @@ export function createWorld(canvas, obstacles) {
       cloud.position.set(-18 + Math.random() * 32, 4.5 + Math.random() * 2.5, -14 + Math.random() * 24);
       block(cloud, 0, 0, 0, 4.5, .8, 1.5, "#f1fbf8");
       block(cloud, -.7, .6, 0, 2.4, .6, 1.4, "#f1fbf8");
-      cloud.traverse(o => { o.castShadow = false; }); scene.add(cloud); dynamicClouds.push(cloud);
+      softenCloud(cloud); scene.add(cloud); dynamicClouds.push(cloud);
     }
   }
   rebuildExpansionDecor(0);
