@@ -45,3 +45,11 @@ run('farmStage=1;worldLevel=3;obstacles.splice(0);companions=[];score=10000;for(
 assert.equal(run('companions.length'),9);
 assert.equal(run('score'),5500);
 console.log('밀밭 10마리 한도 및 초과 구매 차감 방지 검증 통과');
+
+run('ready=true;paused=false;worldLevel=3;obstacles.splice(0);foodCapacity=100;foods=Array.from({length:100},()=>({x:500,y:330}));autoFeed()');
+assert.equal(run('foodCapacity'),101);assert.equal(run('foods.length'),101);
+run('foodCapacity=499;foods=Array.from({length:499},()=>({x:500,y:330}));autoFeed();autoFeed()');
+assert.equal(run('foodCapacity'),500);assert.equal(run('foods.length'),500);
+run('foods.pop();autoFeed()');assert.equal(run('foodCapacity'),500);assert.equal(run('foods.length'),500);
+run('paused=true;foods.pop();autoFeed()');assert.equal(run('foods.length'),499);
+console.log('자동 먹이 한도 증가·500개 상한·보충·일시정지 검증 통과');

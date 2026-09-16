@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=harvest-mixed-2";
+import { createWorld } from "./world.js?v=food-capacity-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -35,7 +35,7 @@ let bot = { x: 130, y: 330, a: 0 },
   escapeTimer = 0,
   saccadeTimer = 0,
   saccadeTurn = 0;
-let companions = [], farmStage = 0, foodTier = 1;
+let companions = [], farmStage = 0, foodTier = 1, foodCapacity = 100;
 let flyStyle = "default";
 let ownedSkins;
 try { ownedSkins = new Set(JSON.parse(localStorage.getItem("flycraft-owned-skins") || '["default"]')); }
@@ -92,7 +92,7 @@ function randomizeObstacles(count = 4) {
   for (let i = 0; i < count; i++) addObstacle();
 }
 function addFood(x, y) {
-  if (foods.length >= 100 + worldLevel * 50) return;
+  if (foods.length >= foodCapacity) return;
   if (x === undefined) {
     const bounds = arenaBounds(35);
     const minX = bounds.minX, maxX = bounds.maxX, minY = bounds.minY, maxY = bounds.maxY;
@@ -106,9 +106,12 @@ function addFood(x, y) {
 }
 randomizeObstacles();
 for (let i = 0; i < 9; i++) addFood();
-setInterval(() => {
-  if (ready && !paused) for (let i = 0; i < 1 + worldLevel; i++) addFood();
-}, 10000);
+function autoFeed() {
+  if (!ready || paused) return;
+  if (foods.length >= foodCapacity && foodCapacity < 500) foodCapacity++;
+  addFood();
+}
+setInterval(autoFeed, 10000);
 let view;
 try {
   view = createWorld(canvas, obstacles);
@@ -119,6 +122,7 @@ function draw() {
   view?.render(bot, foods, trail, elapsed, ready && !paused, companions);
   $("upgrade-food").disabled = !ready || foodTier===3 || score<(foodTier===1?1000:3000);
   $("upgrade-food").textContent = foodTier===3 ? "먹이 3단계 · 최대 가치 3" : `먹이 ${foodTier+1}단계 업그레이드 (${foodTier===1?"1,000":"3,000"})`;
+  $("food").textContent = `먹이 놓기 (${foods.length}/${foodCapacity})`;
   $("food-tier").textContent = `먹이 ${foodTier}단계 · 획득 가치 ${foodTier}`;
   $("buy-fly").disabled = !ready || score < 500 || companions.length >= (farmStage ? 9 : 4);
   $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
@@ -444,6 +448,7 @@ $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
   worldLevel += 1;
+  foodCapacity = Math.min(500, foodCapacity + 50);
   // 면적 증가에 맞춰 단계당 장애물을 5개 추가한다.
   for (let i = 0; i < 5; i++) addObstacle();
   view?.setExpansion(worldLevel);
@@ -452,7 +457,7 @@ $("expand-farm").onclick = () => {
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
-  worldLevel = 0; companions = []; farmStage = 0; foodTier=1; view?.setFoodTier(1);
+  worldLevel = 0; companions = []; farmStage = 0; foodTier=1; foodCapacity=100; view?.setFoodTier(1);
   $("next-farm").textContent="다음 농장 · 수확한 밀밭 (5,000)";
   randomizeObstacles();
   view?.setFarm(0,0);
@@ -578,7 +583,7 @@ if (document.modelContext?.registerTool) {
           !free(input.x, input.y)
         )
           throw new Error("빈 경기장 좌표가 필요합니다");
-        if (foods.length >= 100 + worldLevel * 50) throw new Error(`먹이는 현재 최대 ${100 + worldLevel * 50}개입니다`);
+        if (foods.length >= foodCapacity) throw new Error(`먹이는 현재 최대 ${foodCapacity}개입니다`);
         addFood(input.x, input.y);
         draw();
         return { foodCount: foods.length };
