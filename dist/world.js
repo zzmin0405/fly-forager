@@ -162,12 +162,16 @@ export function createWorld(canvas, obstacles) {
     if (i % 7 === 0) block(world, x, 0.21, z, 0.14, 0.1, 0.14, "#fff0a8");
   }
   const clouds = [];
+  function prepareCloud(cloud) {
+    softenCloud(cloud);
+    cloud.userData.speed = .45 + Math.random() * .75;
+  }
   for (let i = 0; i < 6; i++) {
     const cloud = new THREE.Group();
     cloud.position.set(-22 + i * 9, 7 + (i % 3) * 1.8, -17 - (i % 2) * 8);
     block(cloud, 0, 0, 0, 4.5, 0.8, 1.5, "#f1fbf8");
     block(cloud, -0.7, 0.6, 0, 2.4, 0.6, 1.4, "#f1fbf8");
-    softenCloud(cloud);
+    prepareCloud(cloud);
     scene.add(cloud);
     clouds.push(cloud);
   }
@@ -275,7 +279,7 @@ export function createWorld(canvas, obstacles) {
       cloud.position.set(-18 + Math.random() * 32, 4.5 + Math.random() * 2.5, -14 + Math.random() * 24);
       block(cloud, 0, 0, 0, 4.5, .8, 1.5, "#f1fbf8");
       block(cloud, -.7, .6, 0, 2.4, .6, 1.4, "#f1fbf8");
-      softenCloud(cloud); scene.add(cloud); dynamicClouds.push(cloud);
+      prepareCloud(cloud); scene.add(cloud); dynamicClouds.push(cloud);
     }
   }
   rebuildExpansionDecor(0);
@@ -345,7 +349,8 @@ export function createWorld(canvas, obstacles) {
   scene.add(path);
   const raycaster = new THREE.Raycaster(),
     plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-  let following = false,
+  let currentLevel = 0,
+    following = false,
     firstPerson = false,
     cameraAnimation,
     targetAnimation;
@@ -426,6 +431,7 @@ export function createWorld(canvas, obstacles) {
       extraFlies.forEach(c=>c.setStyle(style));
     },
     setExpansion(level = 0) {
+      currentLevel = level;
       // 실제 타일 좌표를 그대로 유지한다. 확장 레벨은 월드 크기와 카메라 거리만 바꾼다.
       expansionScale = 1;
       baseFence.visible = level === 0;
@@ -531,6 +537,16 @@ export function createWorld(canvas, obstacles) {
       const now = performance.now();
       const cameraDt = Math.min(0.1, (now - cameraTime) / 1000);
       cameraTime = now;
+      const cloudEdge = 24 + currentLevel * 4;
+      for (const cloud of [...clouds, ...dynamicClouds]) {
+        cloud.position.x += cloud.userData.speed * cameraDt;
+        if (cloud.position.x > cloudEdge) {
+          cloud.position.x = -cloudEdge - Math.random() * 8;
+          cloud.position.y = 4.5 + Math.random() * 5;
+          cloud.position.z = -15 - currentLevel * 2 + Math.random() * (30 + currentLevel * 4);
+          cloud.userData.speed = .45 + Math.random() * .75;
+        }
+      }
       fly.position.set(
         gameX(bot.x),
         0.025 + (playing ? Math.sin(time * 12) * 0.025 : 0),
