@@ -449,8 +449,9 @@ $("fly-skin").onchange = () => {
   $("customize").textContent = style === flyStyle ? "적용됨" : ownedSkins.has(style) ? "무료로 적용" : "구매 (100)";
 };
 $("expand-farm").onclick = () => {
-  if (score < 100 || worldLevel >= 8) return;
-  score -= 100;
+  if (!adminMode && (score < 100 || worldLevel >= 8)) return;
+  if (worldLevel >= 8) return;
+  if (!adminMode) score -= 100;
   worldLevel += 1;
   foodCapacity = Math.min(300, foodCapacity + 50);
   // 면적 증가에 맞춰 단계당 장애물을 5개 추가한다.
