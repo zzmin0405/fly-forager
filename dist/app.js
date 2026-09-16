@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=food-capacity-1";
+import { createWorld } from "./world.js?v=orchard-final-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -126,8 +126,9 @@ function draw() {
   $("food-tier").textContent = `먹이 ${foodTier}단계 · 획득 가치 ${foodTier}`;
   $("buy-fly").disabled = !ready || score < 500 || companions.length >= (farmStage ? 9 : 4);
   $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
-  $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
-  $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭 · 오두막/창고 v2" : "초록 농장"}`;
+  $("next-farm").disabled = !ready || (farmStage === 0 ? score < 5000 : score < 30000) || farmStage >= 2;
+  $("next-farm").textContent = farmStage===0 ? "다음 농장 · 수확한 밀밭 (5,000)" : farmStage===1 ? "최종 농장 · 황혼의 과수원 (30,000)" : "황혼의 과수원 · 최고 단계";
+  $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage===2 ? "황혼의 과수원" : farmStage ? "수확한 밀밭 · 오두막/창고 v2" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
   for (let i = 0; i < 63; i++) {
     const x = 22 + (i % 9) * 34,
@@ -356,10 +357,10 @@ $("buy-fly").onclick=()=>{
   score-=500; companions.push(fly);
 };
 $("next-farm").onclick=()=>{
-  if(!ready || farmStage || score<5000) return;
-  score-=5000; farmStage=1; trail=[];
-  view?.setFarm(1,worldLevel);
-  $("next-farm").textContent="수확한 밀밭 도착";
+  const cost=farmStage===0?5000:30000;
+  if(!ready || farmStage>=2 || score<cost) return;
+  score-=cost; farmStage++; trail=[];
+  view?.setFarm(farmStage,worldLevel);
 };
 function frame(t) {
   const dt = Math.min(0.04, (t - last) / 1000 || 0);

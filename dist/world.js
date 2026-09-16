@@ -192,6 +192,17 @@ export function createWorld(canvas, obstacles) {
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50;
       const harvestType = ["cottage", "hay", "granary"][i%3];
+      if (farmStage===2 && i%4===0) {
+        block(expansionDecor,x,.8,z,r*1.8,.2,r*1.8,"#5c3b32");
+        block(expansionDecor,x,.8,z,r*.5,1.6,r*.5,"#60412e");
+        block(expansionDecor,x,1.55,z,r*2.1,.35,r*2.1,"#477443");
+        continue;
+      }
+      if (farmStage===2 && i%4===1) {
+        block(expansionDecor,x,.45,z,r*2.4,.9,r*1.9,"#70627c");
+        block(expansionDecor,x,.98,z,r*2.0,.15,r*1.6,"#927fa3");
+        continue;
+      }
       if (farmStage && harvestType === "granary") {
         block(expansionDecor,x,.65,z,r*1.25,1.3,r*1.25,"#a64c38");
         for(const side of [-1,1]) block(expansionDecor,x+side*r*.5,.7,z+r*.64,.08,1.4,.06,"#f0d9a2");
@@ -394,7 +405,7 @@ export function createWorld(canvas, obstacles) {
       farmStage=stage;
       for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? harvestColor(Math.floor(i/17),i%17) : grassColors[i%5]));
       terrain.instanceColor.needsUpdate=true;
-      scene.background.set(stage ? "#e6d5ac" : "#a6d7e2");
+      scene.background.set(stage===2 ? "#51466f" : stage ? "#e6d5ac" : "#a6d7e2");
       scene.fog.color.copy(scene.background);
       rebuildExpansionDecor(level);
     },
