@@ -168,9 +168,11 @@ export function createWorld(canvas, obstacles) {
   const dynamicClouds = [];
   let farmStage = 0;
   const harvestPalette = ["#d8b86b", "#e3c581", "#c6a15a", "#b59050", "#cfb879", "#a89b64"];
+  const orchardPalette = ["#a98255", "#b58b5e", "#8e7055", "#c09a69", "#78645d", "#9c7959"];
   function harvestColor(x,z) {
     const patch=noise(Math.floor(x/3),Math.floor(z/4));
-    return harvestPalette[(Math.floor(patch*4)+(Math.floor(z)%5===0?2:0))%harvestPalette.length];
+    const palette = farmStage===2 ? orchardPalette : harvestPalette;
+    return palette[(Math.floor(patch*4)+(Math.floor(z)%5===0?2:0))%palette.length];
   }
 
   function rebuildExpansionDecor(level = 0) {
@@ -190,7 +192,7 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     for (let i = 0; i < obstacles.length; i++) {
-      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50;
+      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50 * (farmStage===2 ? 2.35 : 1);
       const harvestType = ["cottage", "hay", "granary"][i%3];
       if (farmStage===2 && i%4===0) {
         block(expansionDecor,x,.8,z,r*1.8,.2,r*1.8,"#5c3b32");
@@ -405,7 +407,7 @@ export function createWorld(canvas, obstacles) {
       farmStage=stage;
       for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? harvestColor(Math.floor(i/17),i%17) : grassColors[i%5]));
       terrain.instanceColor.needsUpdate=true;
-      scene.background.set(stage===2 ? "#51466f" : stage ? "#e6d5ac" : "#a6d7e2");
+      scene.background.set(stage===2 ? "#8b6871" : stage ? "#e6d5ac" : "#a6d7e2");
       scene.fog.color.copy(scene.background);
       rebuildExpansionDecor(level);
     },
