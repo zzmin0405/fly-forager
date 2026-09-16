@@ -11,7 +11,7 @@ export function createWorld(canvas, obstacles) {
     antialias: true,
     alpha: false,
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -38,7 +38,7 @@ export function createWorld(canvas, obstacles) {
   const sun = new THREE.DirectionalLight("#fff2cf", 3.5);
   sun.position.set(-12, 24, 10);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   Object.assign(sun.shadow.camera, {
     left: -18,
     right: 18,
@@ -192,11 +192,17 @@ export function createWorld(canvas, obstacles) {
     dynamicClouds.splice(0).forEach(cloud => scene.remove(cloud));
     const width = 25 + level * 8, depth = 17 + level * 6;
     const halfX = (width - 1) * .4, halfZ = (depth - 1) * .3875;
+    const expansionTiles = new THREE.InstancedMesh(cube, new THREE.MeshStandardMaterial({roughness:1}), width*depth);
+    let tileIndex=0;
     for (let ix = 0; ix < width; ix++) for (let iz = 0; iz < depth; iz++) {
       const x = -halfX + ix * .8, z = -halfZ + iz * .775;
       if (Math.abs(x) <= 9.61 && Math.abs(z) <= 6.21) continue;
-      block(expansionDecor, x, -.18, z, .8, .36, .775, farmStage ? harvestColor(Math.round((x+9.6)/.8),Math.round((z+6.2)/.775)) : (ix % 2 === iz % 2 ? "#7eac50" : "#75a64d"));
+      matrix.compose(new THREE.Vector3(x,-.18,z),new THREE.Quaternion(),new THREE.Vector3(.8,.36,.775));
+      expansionTiles.setMatrixAt(tileIndex,matrix);
+      expansionTiles.setColorAt(tileIndex++,new THREE.Color(farmStage ? harvestColor(Math.round((x+9.6)/.8),Math.round((z+6.2)/.775)) : (ix % 2 === iz % 2 ? "#7eac50" : "#75a64d")));
     }
+    expansionTiles.count=tileIndex; expansionTiles.castShadow=true; expansionTiles.receiveShadow=true;
+    expansionDecor.add(expansionTiles);
     for (let ix = 0; ix < width; ix += 2) { const x = -halfX + ix * .8; block(expansionDecor,x,.38,-halfZ,.14,.8,.14,"#cead76"); block(expansionDecor,x,.38,halfZ,.14,.8,.14,"#cead76"); }
     for (let iz = 0; iz < depth; iz += 2) { const z = -halfZ + iz * .775; block(expansionDecor,-halfX,.38,z,.14,.8,.14,"#cead76"); block(expansionDecor,halfX,.38,z,.14,.8,.14,"#cead76"); }
     block(expansionDecor, 0, .4, -halfZ, width * .8, .11, .1, "#dfc08b");
@@ -278,9 +284,14 @@ export function createWorld(canvas, obstacles) {
       }
     }
     if (farmStage) {
+      const stubbleCount=Math.ceil((halfX*2-.8)/.48)*Math.ceil((halfZ*2-.8)/.8);
+      const stubble=new THREE.InstancedMesh(cube,material("#e9cb7a"),stubbleCount);
+      let stubbleIndex=0;
       for (let x=-halfX+.4;x<halfX;x+=.48) for(let z=-halfZ+.4;z<halfZ;z+=.8) {
-        block(expansionDecor,x,.08,z,.035,.16,.04,"#e9cb7a");
+        matrix.compose(new THREE.Vector3(x,.08,z),new THREE.Quaternion(),new THREE.Vector3(.035,.16,.04));
+        stubble.setMatrixAt(stubbleIndex++,matrix);
       }
+      stubble.count=stubbleIndex; stubble.castShadow=false; expansionDecor.add(stubble);
     }
     for (let i = 0; i < level * 28; i++) {
       const x = (noise(i + 80, level * 17) - .5) * (18 + level * 7), z = (noise(i + 80, level * 29) - .5) * (12 + level * 5);
@@ -314,35 +325,43 @@ export function createWorld(canvas, obstacles) {
   marker.position.y = 0.02;
   scene.add(marker);
   let foodTier=1;
-  const foodMeshes = new Map();
-  function createFood(food) {
-    const mesh = new THREE.Group();
-    block(mesh, 0, 0, 0, 0.25, 0.28, 0.25, "#ffae46");
-    block(mesh, -0.09, -0.04, 0, 0.1, 0.15, 0.18, "#f28432");
-    block(mesh, 0, 0.19, 0, 0.035, 0.12, 0.035, "#695531");
-    const leaf = block(mesh, 0.06, 0.21, 0, 0.14, 0.04, 0.07, "#629a3f");
-    leaf.rotation.z = 0.3;
-    if(foodTier>=2) {
-      mesh.clear();
-      // 잘 익은 붉은 열매, 3단계는 황금 열매 묶음.
-      const color=foodTier===2?"#dc5145":"#f5c542";
-      const count=foodTier===2?1:3;
-      for(let i=0;i<count;i++) {
-        const x=count===1?0:(i-1)*.22, y=i===1?.18:0;
-        block(mesh,x,y,0,.3,.28,.3,color);
-        block(mesh,x-.05,y+.15,0,.15,.08,.2,foodTier===2?"#f78469":"#ffe791");
-        block(mesh,x,y+.23,0,.04,.12,.04,"#795430");
-        block(mesh,x+.07,y+.25,0,.17,.04,.08,"#649542");
+  const foodGroup = new THREE.Group(), foodParts = [];
+  scene.add(foodGroup);
+  const foodMatrix = new THREE.Matrix4(), foodPosition = new THREE.Vector3();
+  const foodRotation = new THREE.Quaternion(), foodScale = new THREE.Vector3();
+  function rebuildFoodInstances() {
+    foodGroup.clear(); foodParts.length=0;
+    const descriptors=[];
+    if(foodTier===1) descriptors.push(
+      [0,0,0,.25,.28,.25,"#ffae46"],[-.09,-.04,0,.1,.15,.18,"#f28432"],
+      [0,.19,0,.035,.12,.035,"#695531"],[.06,.21,0,.14,.04,.07,"#629a3f"]);
+    else {
+      const color=foodTier===2?"#dc5145":"#f5c542", shine=foodTier===2?"#f78469":"#ffe791";
+      for(let i=0;i<(foodTier===2?1:3);i++) {
+        const x=foodTier===2?0:(i-1)*.22,y=i===1?.18:0;
+        descriptors.push([x,y,0,.3,.28,.3,color],[x-.05,y+.15,0,.15,.08,.2,shine],
+          [x,y+.23,0,.04,.12,.04,"#795430"],[x+.07,y+.25,0,.17,.04,.08,"#649542"]);
       }
     }
-    scene.add(mesh);
-    foodMeshes.set(food, mesh);
-    if (!reduced) {
-      mesh.scale.setScalar(0.01);
-      animate(mesh.scale, { x: 1, y: 1, z: 1, duration: 450, ease: "outBack" });
+    for(const d of descriptors) {
+      const mesh=new THREE.InstancedMesh(cube,material(d[6]),200);
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.castShadow=true; mesh.receiveShadow=true;
+      foodGroup.add(mesh); foodParts.push({mesh,d});
     }
-    return mesh;
   }
+  function updateFoodInstances(foods) {
+    const count=Math.min(200,foods.length);
+    for(const {mesh,d} of foodParts) {
+      for(let i=0;i<count;i++) {
+        const food=foods[i];
+        foodPosition.set(gameX(food.x)+d[0],.4+d[1],gameZ(food.y)+d[2]);
+        foodRotation.identity(); foodScale.set(d[3],d[4],d[5]);
+        foodMatrix.compose(foodPosition,foodRotation,foodScale); mesh.setMatrixAt(i,foodMatrix);
+      }
+      mesh.count=count; mesh.instanceMatrix.needsUpdate=true;
+    }
+  }
+  rebuildFoodInstances();
   const pathGeometry = new THREE.BufferGeometry();
   const pathPositions = new Float32Array(600 * 3);
   pathGeometry.setAttribute(
@@ -426,8 +445,7 @@ export function createWorld(canvas, obstacles) {
   return {
     setFoodTier(tier) {
       foodTier=tier;
-      for(const mesh of foodMeshes.values()) scene.remove(mesh);
-      foodMeshes.clear();
+      rebuildFoodInstances();
     },
     setFarm(stage, level) {
       farmStage=stage;
@@ -567,20 +585,7 @@ export function createWorld(canvas, obstacles) {
       fly.rotation.y = -bot.a;
       marker.position.set(fly.position.x, 0.02, fly.position.z);
       creatures.animate(time, playing);
-      for (const [food, mesh] of foodMeshes)
-        if (!foods.includes(food)) {
-          scene.remove(mesh);
-          foodMeshes.delete(food);
-        }
-      for (const food of foods) {
-        const mesh = foodMeshes.get(food) || createFood(food);
-        mesh.position.set(
-          gameX(food.x),
-          0.4 + (reduced ? 0 : Math.sin(time * 2 + food.x) * 0.07),
-          gameZ(food.y),
-        );
-        mesh.rotation.y = time * 0.45;
-      }
+      updateFoodInstances(foods);
       for (let i = 0; i < trail.length; i++) {
         pathPositions[i * 3] = gameX(trail[i].x);
         pathPositions[i * 3 + 1] = 0.025;
