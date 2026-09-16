@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=cloud-loop-1";
+import { createWorld } from "./world.js?v=orchard-tractor-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -128,8 +128,8 @@ function draw() {
   $("buy-fly").disabled = !adminMode && (!ready || score < 500 || companions.length >= (farmStage ? 9 : 4));
   $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
   $("next-farm").disabled = !adminMode && (!ready || (farmStage === 0 ? score < 5000 : score < 30000) || farmStage >= 2);
-  $("expand-farm").disabled = !adminMode && (!ready || score < 100 || worldLevel >= 8);
-  $("expand-farm").textContent = worldLevel >= 8 ? "맵 면적 최대" : `맵 넓히기 ${worldLevel}/8 (100)`;
+  $("expand-farm").disabled = !adminMode && (!ready || score < 100 || worldLevel >= 6);
+  $("expand-farm").textContent = worldLevel >= 6 ? "맵 면적 최대" : `맵 넓히기 ${worldLevel}/6 (100)`;
   $("next-farm").textContent = farmStage===0 ? "다음 농장 · 수확한 밀밭 (5,000)" : farmStage===1 ? "최종 농장 · 황혼의 과수원 (30,000)" : "황혼의 과수원 · 최고 단계";
   $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage===2 ? "황혼의 과수원" : farmStage ? "수확한 밀밭 · 오두막/창고 v2" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
@@ -450,8 +450,8 @@ $("fly-skin").onchange = () => {
   $("customize").textContent = style === flyStyle ? "적용됨" : ownedSkins.has(style) ? "무료로 적용" : "구매 (100)";
 };
 $("expand-farm").onclick = () => {
-  if (!adminMode && (score < 100 || worldLevel >= 8)) return;
-  if (worldLevel >= 8) return;
+  if (!adminMode && (score < 100 || worldLevel >= 6)) return;
+  if (worldLevel >= 6) return;
   if (!adminMode) score -= 100;
   worldLevel += 1;
   foodCapacity = Math.min(200, foodCapacity + 50);
@@ -459,7 +459,7 @@ $("expand-farm").onclick = () => {
   for (let i = 0; i < 5; i++) addObstacle();
   view?.setExpansion(worldLevel);
   for (let i = 0; i < 15 * worldLevel; i++) addFood();
-  $("expand-farm").textContent = worldLevel >= 8 ? "맵 면적 최대" : `맵 넓히기 ${worldLevel}/8 (100)`;
+  $("expand-farm").textContent = worldLevel >= 6 ? "맵 면적 최대" : `맵 넓히기 ${worldLevel}/6 (100)`;
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
@@ -491,7 +491,7 @@ $("reset").onclick = () => {
   $("pause").disabled = false;
   $("pause").textContent = "일시 정지";
   $("speed").textContent = "속도 1×";
-  $("expand-farm").textContent = "맵 넓히기 0/8 (100)";
+  $("expand-farm").textContent = "맵 넓히기 0/6 (100)";
   $("status").textContent = "신경망이 플레이 중 · 무한 탐험";
 };
 $("loading").hidden = true;

@@ -214,8 +214,20 @@ export function createWorld(canvas, obstacles) {
         continue;
       }
       if (farmStage===2 && i%7===1) {
-        block(expansionDecor,x,.45,z,r*2.4,.9,r*1.9,"#70627c");
-        block(expansionDecor,x,.98,z,r*2.0,.15,r*1.6,"#927fa3");
+        const tractor = new THREE.Group();
+        tractor.position.set(x, 0, z);
+        tractor.rotation.y = noise(i, 91) * Math.PI * 2;
+        expansionDecor.add(tractor);
+        block(tractor,0,.55,0,r*2.2,.58,r*1.25,"#b43b2f");
+        block(tractor,-r*.65,1.02,0,r*.82,.78,r*1.05,"#d54a36");
+        block(tractor,-r*.65,1.12,0,r*.58,.48,r*1.08,"#7bb4bd");
+        block(tractor,r*.72,.82,0,r*.58,.24,r*1.08,"#e3a83d");
+        block(tractor,r*1.13,.62,0,r*.18,.52,r*.18,"#4b4a43");
+        for(const side of [-1,1]) {
+          block(tractor,-r*.66,.42,side*r*.7,r*.48,.82,r*.3,"#292a2a");
+          block(tractor,r*.7,.37,side*r*.7,r*.34,.58,r*.25,"#292a2a");
+          block(tractor,-r*.66,.42,side*r*.86,r*.22,.38,r*.08,"#aaa08c");
+        }
         continue;
       }
       if (farmStage && harvestType === "granary") {
@@ -436,8 +448,8 @@ export function createWorld(canvas, obstacles) {
       expansionScale = 1;
       baseFence.visible = level === 0;
       world.scale.set(1, 1, 1);
-      camera.position.setLength(31 + Math.min(8, level) * 3.5);
-      controls.maxDistance = 58 + Math.min(8, level) * 12;
+      camera.position.setLength(31 + Math.min(6, level) * 3.5);
+      controls.maxDistance = 58 + Math.min(6, level) * 12;
       // 확장 후에도 농장 전체가 한 화면에 남도록 카메라를 한 단계씩 물린다.
       // 카메라 거리를 바꾸지 않아 확장된 농장 외곽이 화면에서 실제로 커진다.
       rebuildExpansionDecor(level);
