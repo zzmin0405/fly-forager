@@ -35,6 +35,7 @@ let bot = { x: 130, y: 330, a: 0 },
   escapeTimer = 0,
   saccadeTimer = 0,
   saccadeTurn = 0;
+const adminMode = location.pathname === "/zzmin" || location.pathname === "/zzmin/" || new URLSearchParams(location.search).get("admin") === "1";
 let companions = [], farmStage = 0, foodTier = 1, foodCapacity = 100;
 let flyStyle = "default";
 let ownedSkins;
@@ -120,13 +121,13 @@ try {
 }
 function draw() {
   view?.render(bot, foods, trail, elapsed, ready && !paused, companions);
-  $("upgrade-food").disabled = !ready || foodTier===3 || score<(foodTier===1?1000:3000);
+  $("upgrade-food").disabled = !adminMode && (!ready || foodTier===3 || score<(foodTier===1?1000:3000));
   $("upgrade-food").textContent = foodTier===3 ? "먹이 3단계 · 최대 가치 3" : `먹이 ${foodTier+1}단계 업그레이드 (${foodTier===1?"1,000":"3,000"})`;
   $("food").textContent = `먹이 놓기 (${foods.length}/${foodCapacity})`;
   $("food-tier").textContent = `먹이 ${foodTier}단계 · 획득 가치 ${foodTier}`;
-  $("buy-fly").disabled = !ready || score < 500 || companions.length >= (farmStage ? 9 : 4);
+  $("buy-fly").disabled = !adminMode && (!ready || score < 500 || companions.length >= (farmStage ? 9 : 4));
   $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
-  $("next-farm").disabled = !ready || (farmStage === 0 ? score < 5000 : score < 30000) || farmStage >= 2;
+  $("next-farm").disabled = !adminMode && (!ready || (farmStage === 0 ? score < 5000 : score < 30000) || farmStage >= 2);
   $("next-farm").textContent = farmStage===0 ? "다음 농장 · 수확한 밀밭 (5,000)" : farmStage===1 ? "최종 농장 · 황혼의 과수원 (30,000)" : "황혼의 과수원 · 최고 단계";
   $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage===2 ? "황혼의 과수원" : farmStage ? "수확한 밀밭 · 오두막/창고 v2" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
@@ -348,18 +349,18 @@ function emptySpawn() {
 }
 $("upgrade-food").onclick=()=>{
   const cost=foodTier===1?1000:3000;
-  if(!ready || foodTier>=3 || score<cost) return;
-  score-=cost; foodTier++; view?.setFoodTier(foodTier);
+  if(!adminMode && (!ready || foodTier>=3 || score<cost)) return;
+  if(foodTier<3) { if(!adminMode) score-=cost; foodTier++; view?.setFoodTier(foodTier); }
 };
 $("buy-fly").onclick=()=>{
-  if(!ready || score<500 || companions.length>=(farmStage ? 9 : 4)) return;
+  if(!adminMode && (!ready || score<500 || companions.length>=(farmStage ? 9 : 4))) return;
   const fly=emptySpawn(); if(!fly) return;
-  score-=500; companions.push(fly);
+  if(!adminMode) score-=500; companions.push(fly);
 };
 $("next-farm").onclick=()=>{
   const cost=farmStage===0?5000:30000;
-  if(!ready || farmStage>=2 || score<cost) return;
-  score-=cost; farmStage++; trail=[];
+  if(!adminMode && (!ready || farmStage>=2 || score<cost)) return;
+  if(farmStage>=2) return; if(!adminMode) score-=cost; farmStage++; trail=[];
   view?.setFarm(farmStage,worldLevel);
 };
 function frame(t) {
@@ -431,8 +432,8 @@ $("customize").onclick = () => {
   const selectedStyle = $("fly-skin").value;
   if (selectedStyle === flyStyle) return;
   if (!ownedSkins.has(selectedStyle)) {
-    if (score < 100) return;
-    score -= 100;
+    if (!adminMode && score < 100) return;
+    if (!adminMode) score -= 100;
     ownedSkins.add(selectedStyle);
     localStorage.setItem("flycraft-owned-skins", JSON.stringify([...ownedSkins]));
   }
