@@ -222,6 +222,7 @@ export function createWorld(canvas, obstacles) {
   }
   rebuildExpansionDecor(0);
   const extraFlies = [];
+  let activeStyle="default", trackedIndex=0, flockSize=1;
   const creatures = createCreatures();
   const fly = creatures.root;
   scene.add(fly);
@@ -343,7 +344,9 @@ export function createWorld(canvas, obstacles) {
       rebuildExpansionDecor(level);
     },
     customize(style = "default") {
+      activeStyle=style;
       creatures.setStyle(style);
+      extraFlies.forEach(c=>c.setStyle(style));
     },
     setExpansion(level = 0) {
       // 실제 타일 좌표를 그대로 유지한다. 확장 레벨은 월드 크기와 카메라 거리만 바꾼다.
@@ -359,7 +362,7 @@ export function createWorld(canvas, obstacles) {
     },
     home,
     firstPerson() {
-      if (firstPerson) { home(); return false; }
+      trackedIndex = firstPerson ? (trackedIndex+1)%flockSize : 0;
       cameraAnimation?.cancel();
       targetAnimation?.cancel();
       firstPerson = true;
@@ -373,14 +376,14 @@ export function createWorld(canvas, obstacles) {
       return true;
     },
     follow() {
-      if (firstPerson) {
-        home();
-      }
-      following = !following;
-      document
-        .getElementById("follow")
-        .setAttribute("aria-pressed", String(following));
-      return following;
+      const next = following ? (trackedIndex+1)%flockSize : 0;
+      if (firstPerson) home();
+      cameraAnimation?.cancel();
+      targetAnimation?.cancel();
+      trackedIndex=next;
+      following=true;
+      document.getElementById("follow").setAttribute("aria-pressed","true");
+      return true;
     },
     pick(clientX, clientY) {
       const r = canvas.getBoundingClientRect();
@@ -437,12 +440,17 @@ export function createWorld(canvas, obstacles) {
       });
     },
     render(bot, foods, trail, time, playing, companions = []) {
-      while(extraFlies.length < companions.length) { const c=createCreatures();scene.add(c.root);extraFlies.push(c); }
+      while(extraFlies.length < companions.length) { const c=createCreatures();c.setStyle(activeStyle);scene.add(c.root);extraFlies.push(c); }
       extraFlies.forEach((c,i)=>{
         c.root.visible=i<companions.length;
         if(!c.root.visible)return;
         const f=companions[i]; c.root.position.set(gameX(f.x),.025,gameZ(f.y)); c.root.rotation.y=-f.a;c.animate(time+i,playing);
       });
+      flockSize=companions.length+1;
+      trackedIndex=Math.min(trackedIndex,flockSize-1);
+      const tracked = trackedIndex===0 ? bot : companions[trackedIndex-1];
+      document.getElementById("first-person").textContent=firstPerson ? `3인칭 · ${trackedIndex+1}번 / ${flockSize}` : "3인칭";
+      document.getElementById("follow").textContent=following ? `따라가기 · ${trackedIndex+1}번 / ${flockSize}` : "초파리 따라가기";
       const now = performance.now();
       const cameraDt = Math.min(0.1, (now - cameraTime) / 1000);
       cameraTime = now;
@@ -476,9 +484,9 @@ export function createWorld(canvas, obstacles) {
       pathGeometry.attributes.position.needsUpdate = true;
       pathGeometry.setDrawRange(0, trail.length);
       if (firstPerson) {
-        const direction = new THREE.Vector3(Math.cos(bot.a), 0, Math.sin(bot.a));
+        const direction = new THREE.Vector3(Math.cos(tracked.a), 0, Math.sin(tracked.a));
         // 배틀로얄식 어깨 너머 카메라: 캐릭터 뒤쪽 위에서 진행 방향을 바라본다.
-        const anchor = new THREE.Vector3(fly.position.x, 0, fly.position.z);
+        const anchor = new THREE.Vector3(gameX(tracked.x), 0, gameZ(tracked.y));
         const shoulder = new THREE.Vector3(-direction.z, 0, direction.x);
         const eye = anchor.clone().addScaledVector(direction, -chaseDistance)
           .addScaledVector(shoulder, 0.5).add(new THREE.Vector3(0, 1.65, 0));
@@ -492,7 +500,7 @@ export function createWorld(canvas, obstacles) {
       } else if (following) {
         const old = controls.target.clone();
         controls.target.lerp(
-          new THREE.Vector3(fly.position.x, 0, fly.position.z),
+          new THREE.Vector3(gameX(tracked.x), 0, gameZ(tracked.y)),
           0.06,
         );
         camera.position.add(controls.target.clone().sub(old));

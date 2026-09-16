@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=farm-progression-1";
+import { createWorld } from "./world.js?v=flock-camera-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -111,7 +111,8 @@ try {
 }
 function draw() {
   view?.render(bot, foods, trail, elapsed, ready && !paused, companions);
-  $("buy-fly").disabled = !ready || score < 500;
+  $("buy-fly").disabled = !ready || score < 500 || companions.length >= 4;
+  $("buy-fly").textContent = companions.length >= 4 ? "초파리 최대 5마리" : "초파리 추가 (500)";
   $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
   $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
@@ -293,7 +294,7 @@ function emptySpawn() {
   return null;
 }
 $("buy-fly").onclick=()=>{
-  if(!ready || score<500) return;
+  if(!ready || score<500 || companions.length>=4) return;
   const fly=emptySpawn(); if(!fly) return;
   score-=500; companions.push(fly);
 };

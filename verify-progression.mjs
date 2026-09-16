@@ -13,3 +13,7 @@ run('score=6000; $("next-farm").onclick()');assert.equal(run('score'),6000);
 run('foods=[{x:companions[0].x,y:companions[0].y}];moveCompanions(0)');assert.equal(run('score'),6001);
 console.log('구매 잔액, 안전 생성, 밀밭 전환, 중복 결제 방지, 공동 수집 검증 통과');
 
+run('score=10000; for(let i=0;i<10;i++) $("buy-fly").onclick()');
+assert.equal(run('companions.length'),4);
+assert.equal(run('score'),8500);
+console.log('최대 5마리 제한 및 초과 구매 시 잔액 보존 검증 통과');
