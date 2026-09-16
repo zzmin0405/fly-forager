@@ -108,7 +108,7 @@ randomizeObstacles();
 for (let i = 0; i < 9; i++) addFood();
 function autoFeed() {
   if (!ready || paused) return;
-  if (foods.length >= foodCapacity && foodCapacity < 500) foodCapacity++;
+  if (foods.length >= foodCapacity && foodCapacity < 300) foodCapacity++;
   addFood();
 }
 setInterval(autoFeed, 10000);
@@ -448,7 +448,7 @@ $("expand-farm").onclick = () => {
   if (score < 100 || worldLevel >= 3) return;
   score -= 100;
   worldLevel += 1;
-  foodCapacity = Math.min(500, foodCapacity + 50);
+  foodCapacity = Math.min(300, foodCapacity + 50);
   // 면적 증가에 맞춰 단계당 장애물을 5개 추가한다.
   for (let i = 0; i < 5; i++) addObstacle();
   view?.setExpansion(worldLevel);
