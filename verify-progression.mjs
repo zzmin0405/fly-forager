@@ -17,3 +17,14 @@ run('score=10000; for(let i=0;i<10;i++) $("buy-fly").onclick()');
 assert.equal(run('companions.length'),4);
 assert.equal(run('score'),8500);
 console.log('최대 5마리 제한 및 초과 구매 시 잔액 보존 검증 통과');
+// 울타리와 장애물 사이에서 위치는 그대로, 방향만 변하는 상황을 재현한다.
+run('worldLevel=0; obstacles.splice(0,obstacles.length,{x:150,y:330,r:48}); bot={x:60,y:330,a:0};');
+run('for(let i=0;i<100;i++){bot.a+=.2;recoverMovement(bot,.02)}');
+assert.ok(run('Math.hypot(bot.x-60,bot.y-330)>10'));
+assert.equal(run('free(bot.x,bot.y)'),true);
+run('const trappedFriend={x:60,y:330,a:0}; companions=[trappedFriend]; for(let i=0;i<100;i++){trappedFriend.a+=.2;recoverMovement(trappedFriend,.02)}');
+assert.ok(run('Math.hypot(companions[0].x-60,companions[0].y-330)>10'));
+assert.equal(run('free(companions[0].x,companions[0].y)'),true);
+run('worldLevel=3;randomizeObstacles(19)');
+assert.equal(run('obstacles.every(o=>{const b=arenaBounds();return o.x-o.r-b.minX>=95 && b.maxX-o.x-o.r>=95 && o.y-o.r-b.minY>=95 && b.maxY-o.y-o.r>=95})'),true);
+console.log('본체와 추가 초파리의 제자리 회전 탈출 검증 통과');

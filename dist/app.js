@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=flock-camera-1";
+import { createWorld } from "./world.js?v=escape-corridor-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -71,19 +71,25 @@ function pathFree(x1, y1, x2, y2) {
   });
 }
 function randomObstacle() {
-  const b = arenaBounds(90);
-  for (let i = 0; i < 200; i++) {
+  const r = 30 + Math.random() * 24;
+  // 충돌 반경 38을 양쪽에 적용해도 통과할 수 있는 통로를 남긴다.
+  const b = arenaBounds(r + 120);
+  for (let i = 0; i < 1000; i++) {
     const x = b.minX + Math.random() * (b.maxX - b.minX);
     const y = b.minY + Math.random() * (b.maxY - b.minY);
-    // 초파리 시작 위치와 충분히 떨어진 곳에만 생성한다.
-    if ([bot,...companions].every(f=>Math.hypot(x-f.x,y-f.y)>150) && obstacles.every(o => Math.hypot(x-o.x, y-o.y) > o.r + 70))
-      return { x, y, r: 30 + Math.random() * 24 };
+    if ([bot,...companions].every(f=>Math.hypot(x-f.x,y-f.y)>r+110) &&
+        obstacles.every(o=>Math.hypot(x-o.x,y-o.y)>o.r+r+116))
+      return {x,y,r};
   }
-  return { x: b.maxX - 120, y: b.maxY - 100, r: 34 };
+  return null;
+}
+function addObstacle() {
+  const o=randomObstacle();
+  if(o) obstacles.push(o);
 }
 function randomizeObstacles(count = 4) {
   obstacles.splice(0, obstacles.length);
-  for (let i = 0; i < count; i++) obstacles.push(randomObstacle());
+  for (let i = 0; i < count; i++) addObstacle();
 }
 function addFood(x, y) {
   if (foods.length >= 100 + worldLevel * 50) return;
@@ -150,7 +156,38 @@ function turnToward(target, maxStep) {
   const delta = Math.atan2(Math.sin(target - bot.a), Math.cos(target - bot.a));
   bot.a += Math.max(-maxStep, Math.min(maxStep, delta));
 }
+// 한 자리에서 회전하거나 왕복하면 먹이 추적을 잠시 중지하고 빈 방향으로 직진한다.
+function recoverMovement(f, dt) {
+  f.motion ??= {x:f.x,y:f.y,time:0,remaining:0};
+  const m=f.motion;
+  if(m.remaining>0) {
+    const x=f.x+Math.cos(m.angle)*50*dt, y=f.y+Math.sin(m.angle)*50*dt;
+    if(free(x,y)&&pathFree(f.x,f.y,x,y)) {f.x=x;f.y=y;f.a=m.angle;}
+    else m.remaining=0;
+    m.remaining=Math.max(0,m.remaining-dt);
+    m.x=f.x;m.y=f.y;m.time=0;
+    return true;
+  }
+  m.time+=dt;
+  if(Math.hypot(f.x-m.x,f.y-m.y)>18) {m.x=f.x;m.y=f.y;m.time=0;}
+  if(m.time<1.5) return false;
+  let best=0, angle=f.a;
+  for(let i=0;i<48;i++) {
+    const a=i*Math.PI*2/48;
+    let distance=0;
+    for(let d=4;d<=120;d+=4) {
+      const x=f.x+Math.cos(a)*d,y=f.y+Math.sin(a)*d;
+      if(!free(x,y)||!pathFree(f.x,f.y,x,y)) break;
+      distance=d;
+    }
+    if(distance>best) {best=distance;angle=a;}
+  }
+  if(best>=4) {m.angle=angle;m.remaining=Math.min(1.8,best/50);f.a=angle;}
+  m.time=0;
+  return m.remaining>0;
+}
 function move(dt) {
+  if(recoverMovement(bot,dt)) { elapsed+=dt; return; }
   const [fl, fr, dl, dr] = outputs;
   const beforeX = bot.x, beforeY = bot.y;
   // 초파리처럼 계속 직선으로 달리지 않고, 짧은 배회 구간과 방향 전환을 섞습니다.
@@ -230,21 +267,6 @@ function move(dt) {
     bot.y = Math.max(inner.minY, Math.min(inner.maxY, bot.y));
     stuckTime += dt;
   }
-  if (stuckTime > 1.2) {
-    bot.a += (Math.random() < 0.5 ? -1 : 1) * (0.48 + Math.random() * 0.42);
-    stuckTime = 1.2;
-  }
-  // 좁은 장애물 틈에서 회전만 반복하는 경우 한 번에 옆으로 빠져나온다.
-  if (stuckTime > 2.4) {
-    const escape = Math.random() * Math.PI * 2;
-    const jump = 24;
-    const jx = bot.x + Math.cos(escape) * jump, jy = bot.y + Math.sin(escape) * jump;
-    if (free(jx, jy)) { bot.x = jx; bot.y = jy; }
-    bot.a = escape;
-    stuckTime = 0;
-    targetStall = 0;
-    escapeTimer = 0.8;
-  }
   // 무한 탐험 모드: 에너지는 경고용으로 내려가지만 18% 아래로 떨어지지 않는다.
   energy = Math.max(18, energy - dt * 0.55);
   elapsed += dt;
@@ -272,6 +294,7 @@ function move(dt) {
 }
 function moveCompanions(dt) {
   for (const fly of companions) {
+    if(recoverMovement(fly,dt)) continue;
     const target = foods.reduce((a, b) => !a || Math.hypot(b.x-fly.x,b.y-fly.y) < Math.hypot(a.x-fly.x,a.y-fly.y) ? b : a, null);
     if (target && fly.escape <= 0) {
       const angle = Math.atan2(target.y-fly.y,target.x-fly.x);
@@ -391,7 +414,7 @@ $("expand-farm").onclick = () => {
   score -= 100;
   worldLevel += 1;
   // 면적 증가에 맞춰 단계당 장애물을 5개 추가한다.
-  for (let i = 0; i < 5; i++) obstacles.push(randomObstacle());
+  for (let i = 0; i < 5; i++) addObstacle();
   view?.setExpansion(worldLevel);
   for (let i = 0; i < 15 * worldLevel; i++) addFood();
   $("expand-farm").textContent = worldLevel >= 3 ? "농장 최대 단계" : "농장 확장 (100)";
