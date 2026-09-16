@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=food-tier-1";
+import { createWorld } from "./world.js?v=harvest-huts-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),

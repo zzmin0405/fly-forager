@@ -167,6 +167,12 @@ export function createWorld(canvas, obstacles) {
   world.add(expansionDecor);
   const dynamicClouds = [];
   let farmStage = 0;
+  const harvestPalette = ["#d8b86b", "#e3c581", "#c6a15a", "#b59050", "#cfb879", "#a89b64"];
+  function harvestColor(x,z) {
+    const patch=noise(Math.floor(x/3),Math.floor(z/4));
+    return harvestPalette[(Math.floor(patch*4)+(Math.floor(z)%5===0?2:0))%harvestPalette.length];
+  }
+
   function rebuildExpansionDecor(level = 0) {
     expansionDecor.clear();
     dynamicClouds.splice(0).forEach(cloud => scene.remove(cloud));
@@ -175,7 +181,7 @@ export function createWorld(canvas, obstacles) {
     for (let ix = 0; ix < width; ix++) for (let iz = 0; iz < depth; iz++) {
       const x = -halfX + ix * .8, z = -halfZ + iz * .775;
       if (Math.abs(x) <= 9.61 && Math.abs(z) <= 6.21) continue;
-      block(expansionDecor, x, -.18, z, .8, .36, .775, farmStage ? (iz%3 ? "#c9aa62" : "#b69753") : (ix % 2 === iz % 2 ? "#7eac50" : "#75a64d"));
+      block(expansionDecor, x, -.18, z, .8, .36, .775, farmStage ? harvestColor(Math.round((x+9.6)/.8),Math.round((z+6.2)/.775)) : (ix % 2 === iz % 2 ? "#7eac50" : "#75a64d"));
     }
     for (let ix = 0; ix < width; ix += 2) { const x = -halfX + ix * .8; block(expansionDecor,x,.38,-halfZ,.14,.8,.14,"#cead76"); block(expansionDecor,x,.38,halfZ,.14,.8,.14,"#cead76"); }
     for (let iz = 0; iz < depth; iz += 2) { const z = -halfZ + iz * .775; block(expansionDecor,-halfX,.38,z,.14,.8,.14,"#cead76"); block(expansionDecor,halfX,.38,z,.14,.8,.14,"#cead76"); }
@@ -185,6 +191,26 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50;
+      if (farmStage && i%3===0) {
+        const hut=new THREE.Group();
+        hut.position.set(x,0,z); expansionDecor.add(hut);
+        const size=r*1.25;
+        block(hut,0,.04,0,size,.08,size,"#77634d");
+        block(hut,0,.56,0,size,1.04,size,"#ab7948");
+        // 목조 벽의 판재와 모서리 기둥.
+        for(let row=0;row<5;row++) {
+          block(hut,0,.2+row*.19,size/2+.01,size,.035,.025,"#785435");
+          block(hut,size/2+.01,.2+row*.19,0,.025,.035,size,"#785435");
+        }
+        for(const a of [-1,1]) for(const b of [-1,1]) block(hut,a*(size/2-.05),.56,b*(size/2-.05),.09,1.1,.09,"#67482e");
+        block(hut,-size*.2,.37,size/2+.025,size*.28,.68,.04,"#513d2c");
+        block(hut,-size*.13,.4,size/2+.053,.035,.035,.025,"#edbd63");
+        block(hut,size*.22,.69,size/2+.03,size*.28,.32,.05,"#f6d88a");
+        block(hut,size*.22,.69,size/2+.06,.035,.33,.02,"#705337");
+        for(let row=0;row<5;row++) block(hut,0,1.12+row*.09,0,size+ .12-row*.1,.12,size+.12,["#884e36","#a5603f","#bb7950"][row%3]);
+        block(hut,size*.27,1.53,-size*.2,.16,.42,.18,"#8b8172");
+        continue;
+      }
       if (farmStage) {
         block(expansionDecor,x,.45,z,r*1.65,.9,r*1.45,"#d5a345");
         block(expansionDecor,x,.94,z,r*1.5,.1,r*1.3,"#edcd78");
@@ -356,7 +382,7 @@ export function createWorld(canvas, obstacles) {
     },
     setFarm(stage, level) {
       farmStage=stage;
-      for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? (i%3 ? "#c9aa62" : "#b69753") : grassColors[i%5]));
+      for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? harvestColor(Math.floor(i/17),i%17) : grassColors[i%5]));
       terrain.instanceColor.needsUpdate=true;
       scene.background.set(stage ? "#e6d5ac" : "#a6d7e2");
       scene.fog.color.copy(scene.background);
