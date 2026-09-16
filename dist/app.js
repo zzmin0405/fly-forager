@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=harvest-ten-1";
+import { createWorld } from "./world.js?v=harvest-mixed-2";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -123,7 +123,7 @@ function draw() {
   $("buy-fly").disabled = !ready || score < 500 || companions.length >= (farmStage ? 9 : 4);
   $("buy-fly").textContent = companions.length >= (farmStage ? 9 : 4) ? `초파리 최대 ${farmStage ? 10 : 5}마리` : "초파리 추가 (500)";
   $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
-  $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭" : "초록 농장"}`;
+  $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭 · 오두막/창고 v2" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
   for (let i = 0; i < 63; i++) {
     const x = 22 + (i % 9) * 34,

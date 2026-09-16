@@ -191,7 +191,17 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50;
-      if (farmStage && i%3===0) {
+      const harvestType = ["cottage", "hay", "granary"][i%3];
+      if (farmStage && harvestType === "granary") {
+        block(expansionDecor,x,.65,z,r*1.25,1.3,r*1.25,"#a64c38");
+        for(const side of [-1,1]) block(expansionDecor,x+side*r*.5,.7,z+r*.64,.08,1.4,.06,"#f0d9a2");
+        block(expansionDecor,x,1.42,z,r*1.4,.24,r*1.4,"#526469");
+        block(expansionDecor,x,1.61,z,r*.85,.17,r*1.4,"#62777a");
+        block(expansionDecor,x,.4,z+r*.65,r*.6,.8,.05,"#67452e");
+        block(expansionDecor,x,.85,z+r*.69,r*.75,.07,.04,"#ecd2a1");
+        continue;
+      }
+      if (farmStage && harvestType === "cottage") {
         const hut=new THREE.Group();
         hut.position.set(x,0,z); expansionDecor.add(hut);
         const size=r*1.25;
