@@ -127,22 +127,6 @@ export function createWorld(canvas, obstacles) {
     block(baseFence, 0, 0.4, z, 19.3, 0.11, 0.1, "#dfc08b");
   for (const x of [-9.6, 9.6])
     block(baseFence, x, 0.4, 0, 0.1, 0.11, 12.7, "#dfc08b");
-  obstacles.forEach((o, i) => {
-    const x = (o.x - 500) / 50,
-      z = (o.y - 330) / 50,
-      r = o.r / 50;
-    if (i === 0 || i === 2) {
-      block(world, x, 0.8, z, 0.42, 1.6, 0.42, "#765333");
-      block(world, x - 0.12, 1.7, z, r * 1.7, 1.0, r * 1.6, "#3f773e");
-      block(world, x + 0.1, 2.4, z - 0.08, r * 1.4, 0.7, r * 1.3, "#579444");
-      block(world, x - 0.06, 2.88, z, r * 0.8, 0.3, r * 0.85, "#75ac4b");
-      block(world, x, 0.08, z, r * 1.6, 0.16, r * 1.6, "#557d40");
-    } else {
-      block(world, x, 0.28, z, r * 1.6, 0.56, r * 1.35, "#909b91");
-      block(world, x - 0.2, 0.72, z - 0.13, r * 1.1, 0.4, r * 0.95, "#b1bbb0");
-      block(world, x + 0.45, 0.17, z + 0.4, 0.55, 0.34, 0.5, "#748579");
-    }
-  });
   // 풀은 통과 가능한 장식이다.
   for (let i = 0; i < 75; i++) {
     const x = (noise(i, 14) - 0.5) * 18,
@@ -182,17 +166,7 @@ export function createWorld(canvas, obstacles) {
   const expansionDecor = new THREE.Group();
   world.add(expansionDecor);
   const dynamicClouds = [];
-  const expansionObstacles = [
-    { x: 190, y: 180, r: 32, tree: true }, { x: 820, y: 510, r: 35 },
-    { x: 210, y: 520, r: 30 }, { x: 830, y: 185, r: 34, tree: true },
-    { x: 500, y: 120, r: 32, tree: true }, { x: 500, y: 555, r: 34 },
-    { x: 120, y: 330, r: 30 }, { x: 880, y: 330, r: 32, tree: true },
-    { x: 350, y: 135, r: 28 }, { x: 680, y: 525, r: 31 },
-    { x: 120, y: 520, r: 29, tree: true }, { x: 875, y: 145, r: 30 },
-    { x: 300, y: 570, r: 30 }, { x: 720, y: 110, r: 28, tree: true },
-    { x: 150, y: 160, r: 30 }, { x: 850, y: 540, r: 32 },
-    { x: 420, y: 100, r: 28, tree: true }, { x: 590, y: 570, r: 30 },
-  ];
+  let farmStage = 0;
   function rebuildExpansionDecor(level = 0) {
     expansionDecor.clear();
     dynamicClouds.splice(0).forEach(cloud => scene.remove(cloud));
@@ -201,7 +175,7 @@ export function createWorld(canvas, obstacles) {
     for (let ix = 0; ix < width; ix++) for (let iz = 0; iz < depth; iz++) {
       const x = -halfX + ix * .8, z = -halfZ + iz * .775;
       if (Math.abs(x) <= 9.61 && Math.abs(z) <= 6.21) continue;
-      block(expansionDecor, x, -.18, z, .8, .36, .775, ix % 2 === iz % 2 ? "#7eac50" : "#75a64d");
+      block(expansionDecor, x, -.18, z, .8, .36, .775, farmStage ? (iz%3 ? "#c9aa62" : "#b69753") : (ix % 2 === iz % 2 ? "#7eac50" : "#75a64d"));
     }
     for (let ix = 0; ix < width; ix += 2) { const x = -halfX + ix * .8; block(expansionDecor,x,.38,-halfZ,.14,.8,.14,"#cead76"); block(expansionDecor,x,.38,halfZ,.14,.8,.14,"#cead76"); }
     for (let iz = 0; iz < depth; iz += 2) { const z = -halfZ + iz * .775; block(expansionDecor,-halfX,.38,z,.14,.8,.14,"#cead76"); block(expansionDecor,halfX,.38,z,.14,.8,.14,"#cead76"); }
@@ -209,18 +183,16 @@ export function createWorld(canvas, obstacles) {
     block(expansionDecor, 0, .4, halfZ, width * .8, .11, .1, "#dfc08b");
     block(expansionDecor, -halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
     block(expansionDecor, halfX, .4, 0, .1, .11, depth * .775, "#dfc08b");
-    const count = Math.min(expansionObstacles.length, level * 6);
-    for (let i = 0; i < count; i++) {
-      const o = expansionObstacles[i];
-      // 확장된 전체 면적에 분산하고 중앙 시작 지점은 피한다.
-      let x = 0, z = 0;
-      for (let tries = 0; tries < 40; tries++) {
-        x = (Math.random() * 2 - 1) * (halfX - 1.2);
-        z = (Math.random() * 2 - 1) * (halfZ - 1.2);
-        if (Math.hypot(x, z) > 4.5) break;
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i], x = gameX(o.x), z = gameZ(o.y), r = o.r/50;
+      if (farmStage) {
+        block(expansionDecor,x,.45,z,r*1.65,.9,r*1.45,"#d5a345");
+        block(expansionDecor,x,.94,z,r*1.5,.1,r*1.3,"#edcd78");
+        for (const offset of [-.45,.45]) block(expansionDecor,x+offset*r,.47,z,.08,.96,r*1.47,"#8b6736");
+        for(let j=0;j<5;j++) block(expansionDecor,x,.14+j*.15,z+r*.73,r*1.6,.025,.025,"#b98737");
+        continue;
       }
-      const r = o.r / 50;
-      if (o.tree) {
+      if (i % 2 === 0) {
         block(expansionDecor, x, .8, z, .42, 1.6, .42, "#765333");
         block(expansionDecor, x - .12, 1.7, z, r * 1.7, 1, r * 1.6, "#3f773e");
         block(expansionDecor, x + .1, 2.4, z - .08, r * 1.4, .7, r * 1.3, "#579444");
@@ -229,6 +201,11 @@ export function createWorld(canvas, obstacles) {
         block(expansionDecor, x, .28, z, r * 1.6, .56, r * 1.35, "#909b91");
         block(expansionDecor, x - .2, .72, z - .13, r * 1.1, .4, r * .95, "#b1bbb0");
         block(expansionDecor, x + .45, .17, z + .4, .55, .34, .5, "#748579");
+      }
+    }
+    if (farmStage) {
+      for (let x=-halfX+.4;x<halfX;x+=.48) for(let z=-halfZ+.4;z<halfZ;z+=.8) {
+        block(expansionDecor,x,.08,z,.035,.16,.04,"#e9cb7a");
       }
     }
     for (let i = 0; i < level * 28; i++) {
@@ -243,6 +220,8 @@ export function createWorld(canvas, obstacles) {
       cloud.traverse(o => { o.castShadow = false; }); scene.add(cloud); dynamicClouds.push(cloud);
     }
   }
+  rebuildExpansionDecor(0);
+  const extraFlies = [];
   const creatures = createCreatures();
   const fly = creatures.root;
   scene.add(fly);
@@ -355,6 +334,14 @@ export function createWorld(canvas, obstacles) {
     chaseDistance = Math.max(1.4, Math.min(8, chaseDistance + event.deltaY * 0.006));
   }, { passive: false });
   return {
+    setFarm(stage, level) {
+      farmStage=stage;
+      for(let i=0;i<25*17;i++) terrain.setColorAt(i*3,new THREE.Color(stage ? (i%3 ? "#c9aa62" : "#b69753") : grassColors[i%5]));
+      terrain.instanceColor.needsUpdate=true;
+      scene.background.set(stage ? "#e6d5ac" : "#a6d7e2");
+      scene.fog.color.copy(scene.background);
+      rebuildExpansionDecor(level);
+    },
     customize(style = "default") {
       creatures.setStyle(style);
     },
@@ -449,7 +436,13 @@ export function createWorld(canvas, obstacles) {
         ease: "outElastic(1, .5)",
       });
     },
-    render(bot, foods, trail, time, playing) {
+    render(bot, foods, trail, time, playing, companions = []) {
+      while(extraFlies.length < companions.length) { const c=createCreatures();scene.add(c.root);extraFlies.push(c); }
+      extraFlies.forEach((c,i)=>{
+        c.root.visible=i<companions.length;
+        if(!c.root.visible)return;
+        const f=companions[i]; c.root.position.set(gameX(f.x),.025,gameZ(f.y)); c.root.rotation.y=-f.a;c.animate(time+i,playing);
+      });
       const now = performance.now();
       const cameraDt = Math.min(0.1, (now - cameraTime) / 1000);
       cameraTime = now;

@@ -1,4 +1,4 @@
-import { createWorld } from "./world.js?v=map-expansion-9";
+import { createWorld } from "./world.js?v=farm-progression-1";
 import { createNeuronView } from "./neuron-view.js?v=2";
 const $ = (id) => document.getElementById(id),
   canvas = $("game"),
@@ -35,6 +35,7 @@ let bot = { x: 130, y: 330, a: 0 },
   escapeTimer = 0,
   saccadeTimer = 0,
   saccadeTurn = 0;
+let companions = [], farmStage = 0;
 let flyStyle = "default";
 let ownedSkins;
 try { ownedSkins = new Set(JSON.parse(localStorage.getItem("flycraft-owned-skins") || '["default"]')); }
@@ -75,7 +76,7 @@ function randomObstacle() {
     const x = b.minX + Math.random() * (b.maxX - b.minX);
     const y = b.minY + Math.random() * (b.maxY - b.minY);
     // 초파리 시작 위치와 충분히 떨어진 곳에만 생성한다.
-    if (Math.hypot(x - bot.x, y - bot.y) > 150 && obstacles.every(o => Math.hypot(x-o.x, y-o.y) > o.r + 70))
+    if ([bot,...companions].every(f=>Math.hypot(x-f.x,y-f.y)>150) && obstacles.every(o => Math.hypot(x-o.x, y-o.y) > o.r + 70))
       return { x, y, r: 30 + Math.random() * 24 };
   }
   return { x: b.maxX - 120, y: b.maxY - 100, r: 34 };
@@ -109,7 +110,10 @@ try {
   queueMicrotask(() => fail("WebGL 3D 초기화 실패: " + e.message));
 }
 function draw() {
-  view?.render(bot, foods, trail, elapsed, ready && !paused);
+  view?.render(bot, foods, trail, elapsed, ready && !paused, companions);
+  $("buy-fly").disabled = !ready || score < 500;
+  $("next-farm").disabled = !ready || score < 5000 || farmStage === 1;
+  $("flock-count").textContent = `초파리 ${companions.length + 1}마리 · ${farmStage ? "수확한 밀밭" : "초록 농장"}`;
   neuro.clearRect(0, 0, 320, 180);
   for (let i = 0; i < 63; i++) {
     const x = 22 + (i % 9) * 34,
@@ -265,11 +269,46 @@ function move(dt) {
   $("time").textContent =
     `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(Math.floor(elapsed % 60)).padStart(2, "0")}`;
 }
+function moveCompanions(dt) {
+  for (const fly of companions) {
+    const target = foods.reduce((a, b) => !a || Math.hypot(b.x-fly.x,b.y-fly.y) < Math.hypot(a.x-fly.x,a.y-fly.y) ? b : a, null);
+    if (target && fly.escape <= 0) {
+      const angle = Math.atan2(target.y-fly.y,target.x-fly.x);
+      fly.a += Math.max(-dt*3, Math.min(dt*3, Math.atan2(Math.sin(angle-fly.a),Math.cos(angle-fly.a))));
+    }
+    fly.escape -= dt;
+    const x = fly.x + Math.cos(fly.a)*55*dt, y = fly.y + Math.sin(fly.a)*55*dt;
+    if (free(x,y) && pathFree(fly.x,fly.y,x,y)) { fly.x=x; fly.y=y; }
+    else { fly.a += 1.2; fly.escape=.7; }
+    const i = foods.findIndex(f => Math.hypot(f.x-fly.x,f.y-fly.y)<36);
+    if (i>=0) { view?.collect(foods[i]); foods.splice(i,1); score++; addFood(); }
+  }
+}
+function emptySpawn() {
+  const b=arenaBounds(60);
+  for(let i=0;i<1000;i++) {
+    const x=b.minX+Math.random()*(b.maxX-b.minX), y=b.minY+Math.random()*(b.maxY-b.minY);
+    if(free(x,y)) return {x,y,a:Math.random()*Math.PI*2,escape:0};
+  }
+  return null;
+}
+$("buy-fly").onclick=()=>{
+  if(!ready || score<500) return;
+  const fly=emptySpawn(); if(!fly) return;
+  score-=500; companions.push(fly);
+};
+$("next-farm").onclick=()=>{
+  if(!ready || farmStage || score<5000) return;
+  score-=5000; farmStage=1; trail=[];
+  view?.setFarm(1,worldLevel);
+  $("next-farm").textContent="수확한 밀밭 도착";
+};
 function frame(t) {
   const dt = Math.min(0.04, (t - last) / 1000 || 0);
   last = t;
   if (ready && !paused) {
     move(dt * simSpeed);
+    moveCompanions(dt * simSpeed);
     if (!busy && t - stepAt > 100) {
       busy = true;
       stepAt = t;
@@ -358,7 +397,10 @@ $("expand-farm").onclick = () => {
 };
 $("reset").onclick = () => {
   bot = { x: 130, y: 330, a: 0 };
+  worldLevel = 0; companions = []; farmStage = 0;
+  $("next-farm").textContent="다음 농장 · 수확한 밀밭 (5,000)";
   randomizeObstacles();
+  view?.setFarm(0,0);
   foods = [];
   for (let i = 0; i < 9; i++) addFood();
   trail = [];
